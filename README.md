@@ -1,5 +1,7 @@
 # Graph Database Africa · Neo4j
 
+[![Live site](https://img.shields.io/badge/live-GitHub%20Pages-5EEAD4?style=flat-square)](https://thembelitchi.github.io/neo4j-graph-database-africa/) [![Licence: MIT](https://img.shields.io/badge/licence-MIT-4FB3FF?style=flat-square)](LICENSE) ![No build step](https://img.shields.io/badge/build-none%20%C2%B7%20plain%20HTML-F79767?style=flat-square)
+
 Talks, live demos and embeddable widgets for learning knowledge graphs, Cypher and GraphRAG, from the Neo4j community in Southern Africa.
 
 **Live site:** https://thembelitchi.github.io/neo4j-graph-database-africa/
@@ -62,3 +64,17 @@ talks/ukzn-2026/widgets/*.html     Embeddable widgets (no build step, no depende
 ```
 
 Plain HTML, CSS and JavaScript. Edit a file, push, and GitHub Pages updates in about a minute.
+
+## Who's behind this
+
+I'm **Thembelihle Gumede**, Neo4j Community Lead for Southern Africa, founder of Graph Database Africa, and an HPCSA-registered Biomedical Technologist turned data scientist. I build knowledge graphs for clinical labs, health and African bioeconomy projects, and I use this repo to share the demos from my talks so students can reuse them.
+
+- GitHub: [@Thembelitchi](https://github.com/Thembelitchi)
+- LinkedIn: [Thembelihle Gumede](https://www.linkedin.com/in/thembelihle-gumede-29a68095)
+
+## Reusing the demos
+
+The code is MIT-licensed: fork it, embed it in your own talks, adapt the Cypher for your own domain. I'd love to hear where it ends up, so open an issue or tag me.
+
+Case-study figures in the industries explorer are mostly vendor-published (Neo4j customer stories) and are cited in each card.
+
