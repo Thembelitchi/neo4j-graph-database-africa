@@ -10,7 +10,7 @@ Talks, live demos and embeddable widgets for learning knowledge graphs, Cypher a
 
 ## Talks
 
-### The Power of the Network (UKZN guest lecture, 2026)
+### The Power of the Network ( 2026)
 
 An introduction to knowledge graphs and enterprise graph data science.
 
