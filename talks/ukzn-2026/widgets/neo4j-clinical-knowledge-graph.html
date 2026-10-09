@@ -1,0 +1,66 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Clinical Knowledge Graph</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap"><meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+html,body{margin:0;height:100%;background:#0B1426;color-scheme:dark;overflow:hidden;font-family:"Public Sans","Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:#EEF2F8}
+#st{position:absolute;left:0;top:0;width:1600px;height:640px;transform-origin:0 0;display:flex;gap:24px}
+.cap{flex:0 0 600px;box-sizing:border-box;background:#0E1A2F;border:1px solid #24365A;border-radius:18px;padding:28px 32px;display:flex;flex-direction:column;gap:20px}
+.chip{align-self:flex-start;font:600 20px/1 "Fira Code",Consolas,Menlo,monospace;letter-spacing:2px;color:#0B1426;background:#5EEAD4;border-radius:999px;padding:8px 14px}
+#q{font-size:32px;font-weight:600;line-height:1.25;min-height:80px}
+#cy{font:400 20px/1.5 "Fira Code","JetBrains Mono",Consolas,Menlo,monospace;white-space:pre;background:#0B1426;border:1px solid #1E2F50;border-radius:12px;padding:14px 16px;flex:1}
+#an{font-size:25px;font-weight:600;color:#5EEAD4;line-height:1.3;min-height:66px}
+.fade{transition:opacity .35s}.out{opacity:0}
+.dots{display:flex;gap:10px}.dots i{width:40px;height:6px;border-radius:3px;background:#24365A}.dots i.on{background:#5EEAD4}
+.gp{flex:1;position:relative;border-radius:18px;border:1px solid #1B2A47;background:radial-gradient(circle at 55% 45%,#13264A 0%,#0B1426 72%)}
+.gp svg{position:absolute;left:0;top:0;width:100%;height:100%}
+.n,.e{transition:opacity .45s}
+.e path{stroke:#6F7B90;stroke-width:2.5;fill:none;transition:stroke .3s,stroke-width .3s}
+.e .lb{opacity:0;transition:opacity .4s}
+.e.hl path{stroke:#5EEAD4;stroke-width:5}.e.hl .lb{opacity:1}
+.n circle{transition:stroke .3s,stroke-width .3s}
+.n.hl circle{stroke:#5EEAD4;stroke-width:6}
+svg.dim .n:not(.hl),svg.dim .e:not(.hl){opacity:.2}
+</style></head>
+<body><div id="st">
+<div class="cap"><span class="chip" id="chip">QUESTION 1 / 4</span><div id="q" class="fade"></div><div id="cy" class="fade"></div><div id="an" class="fade"></div><div class="dots" id="dots"><i></i><i></i><i></i><i></i></div></div>
+<div class="gp"><svg id="g" viewBox="0 0 976 640" preserveAspectRatio="xMidYMid meet">
+<defs><marker id="a0" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#6F7B90"/></marker>
+<marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0 0L10 5L0 10z" fill="#5EEAD4"/></marker></defs>
+<g id="E"></g><g id="L"></g><g id="N"></g></svg></div>
+</div>
+<script>
+var NS='http://www.w3.org/2000/svg';function rr(k){return N[k][2]==='D'?58:46}
+var C={W:'#4C8EDA',P:'#DA7194',I:'#FFC454',O:'#F16667',M:'#C990C0',D:'#8DCC93'};
+var N={W1:[60,215,'W','ICU-3'],W2:[60,500,'W','Ward 7'],P1:[270,110,'P','PT-001'],P2:[270,320,'P','PT-014'],P3:[270,530,'P','PT-022'],I1:[500,110,'I','ISO-77'],I2:[500,320,'I','ISO-81'],I3:[500,530,'I','ISO-90'],Kp:[700,58,'O','K. pneu.'],Ec:[700,580,'O','E. coli'],KPC:[720,250,'M','KPC'],CTX:[720,430,'M','CTX-M-15'],MEM:[905,100,'D','Meropenem'],IMP:[905,280,'D','Imipenem'],CRO:[905,470,'D','Ceftriaxone']};
+var E=[['P1','W1','ADMITTED_TO'],['P2','W1','ADMITTED_TO'],['P3','W2','ADMITTED_TO'],['P1','I1','HAS_ISOLATE'],['P2','I2','HAS_ISOLATE'],['P3','I3','HAS_ISOLATE'],['I1','Kp','INSTANCE_OF'],['I2','Kp','INSTANCE_OF'],['I3','Ec','INSTANCE_OF'],['I1','KPC','CARRIES'],['I2','KPC','CARRIES'],['I3','CTX','CARRIES'],['KPC','MEM','CONFERS_RESISTANCE_TO'],['KPC','IMP','CONFERS_RESISTANCE_TO'],['CTX','CRO','CONFERS_RESISTANCE_TO']];
+var Q=[
+{q:'Which drugs should we avoid for patient PT-001?',c:["MATCH (:Patient {id:'PT-001'})","  -[:HAS_ISOLATE]->()-[:CARRIES]->(m)","  -[:CONFERS_RESISTANCE_TO]->(d:Drug)","RETURN d.name"],a:'Meropenem, Imipenem: 3 hops, via the KPC mechanism',p:['P1-I1','I1-KPC','KPC-MEM','KPC-IMP']},
+{q:'Who else carries the same resistance mechanism?',c:["MATCH (:Patient {id:'PT-001'})","  -[:HAS_ISOLATE]->()-[:CARRIES]->(m)","  <-[:CARRIES]-()","  <-[:HAS_ISOLATE]-(other:Patient)","RETURN other.id, m.name"],a:'PT-014 (isolate ISO-81) also carries KPC',p:['P1-I1','I1-KPC','I2-KPC','P2-I2']},
+{q:'Same ward, same mechanism: a possible cluster?',c:["MATCH (a:Patient)-[:ADMITTED_TO]->(w:Ward)","      <-[:ADMITTED_TO]-(b:Patient),","  (a)-[:HAS_ISOLATE]->()-[:CARRIES]->(m)","      <-[:CARRIES]-()<-[:HAS_ISOLATE]-(b)","WHERE a.id > b.id","RETURN w.name, a.id, b.id, m.name"],a:'ICU-3: PT-001 and PT-014 share KPC. Flag for infection control',p:['P1-W1','P2-W1','P1-I1','P2-I2','I1-KPC','I2-KPC']},
+{q:'Which pathogen drives carbapenem resistance here?',c:["MATCH (o:Pathogen)<-[:INSTANCE_OF]-(i)","  -[:CARRIES]->()-[:CONFERS_RESISTANCE_TO]->","  (:Drug {class:'Carbapenem'})","RETURN o.name, count(DISTINCT i)"],a:'K. pneumoniae: 2 isolates (ISO-77, ISO-81)',p:['I1-Kp','I2-Kp','I1-KPC','I2-KPC','KPC-MEM','KPC-IMP']}];
+var col={kw:'#4FB3FF',lb:'#E58AA9',rt:'#F79767',st:'#5EEAD4',tx:'#EEF2F8'};
+function tok(l){var re=/('[^']*')|\b(MATCH|RETURN|WHERE|AS|DISTINCT)\b|(:[A-Za-z_]+)/g,o=[],i=0,m;while((m=re.exec(l))){if(m.index>i)o.push([l.slice(i,m.index),col.tx]);o.push([m[0],m[1]?col.st:m[2]?col.kw:(/^:[A-Z_]+$/.test(m[3])?col.rt:col.lb)]);i=re.lastIndex}if(l.length>i)o.push([l.slice(i),col.tx]);return o}
+function mk(t,a,p){var e=document.createElementNS(NS,t);for(var k in a)e.setAttribute(k,a[k]);p.appendChild(e);return e}
+var g=document.getElementById('g'),NE={},EE={};
+for(var k in N){var d=N[k],R=rr(k),gg=mk('g',{'class':'n'},document.getElementById('N'));mk('circle',{cx:d[0],cy:d[1],r:R,fill:C[d[2]],stroke:'rgba(0,0,0,.25)','stroke-width':3},gg);
+var fs=Math.min(19,Math.floor(2*R*.86/(d[3].length*.6))),t=mk('text',{x:d[0],y:d[1]+fs*.35,'text-anchor':'middle','font-size':fs,'font-weight':700,fill:'#0B1426'},gg);t.textContent=d[3];NE[k]=gg}
+E.forEach(function(e){var Ra=rr(e[0]),Rb=rr(e[1]),a=N[e[0]],b=N[e[1]],dx=b[0]-a[0],dy=b[1]-a[1],L=Math.sqrt(dx*dx+dy*dy),ux=dx/L,uy=dy/L,x1=a[0]+ux*Ra,y1=a[1]+uy*Ra,x2=b[0]-ux*(Rb+3),y2=b[1]-uy*(Rb+3),gg=mk('g',{'class':'e'},document.getElementById('E'));
+gg.p=mk('path',{d:'M'+x1+' '+y1+'L'+x2+' '+y2,'marker-end':'url(#a0)'},gg);var lx=(x1+x2)/2,ly=(y1+y2)/2,w=e[2].length*9.8+16,lg=mk('g',{'class':'lb'},gg);
+mk('rect',{x:lx-w/2,y:ly-14,width:w,height:28,rx:14,fill:'#0E1A2F',stroke:'#2E4470'},lg);var tt=mk('text',{x:lx,y:ly+6,'text-anchor':'middle','font-size':16,'font-family':'Fira Code,Consolas,Menlo,monospace',fill:'#F79767'},lg);tt.textContent=e[2];
+EE[e[0]+'-'+e[1]]=gg});
+var cur=-1,gen=0,manual=false,idle=null,T=null;
+function later(f,ms){var my=gen;T=setTimeout(function(){if(my===gen)f()},ms)}
+function code(lines){var cy=document.getElementById('cy');cy.textContent='';lines.forEach(function(l){var dv=document.createElement('div');tok(l).forEach(function(s){var sp=document.createElement('span');sp.textContent=s[0];sp.style.color=s[1];dv.appendChild(sp)});cy.appendChild(dv)})}
+function clear(){g.classList.remove('dim');for(var k in NE)NE[k].classList.remove('hl');for(var k in EE){EE[k].classList.remove('hl');EE[k].p.setAttribute('marker-end','url(#a0)')}}
+function show(k,anim){gen++;cur=k;var q=Q[k],els=[document.getElementById('q'),document.getElementById('cy'),document.getElementById('an')];
+els.forEach(function(e){e.classList.add('out')});clear();
+later(function(){document.getElementById('chip').textContent='QUESTION '+(k+1)+' / 4';document.getElementById('q').textContent=q.q;code(q.c);document.getElementById('an').textContent='';
+var ds=document.getElementById('dots').children;for(var i=0;i!==4;i++)ds[i].classList.toggle('on',i===k);
+els[0].classList.remove('out');els[1].classList.remove('out');g.classList.add('dim');
+var i=0;(function step(){if(i===q.p.length){later(function(){document.getElementById('an').textContent='→ '+q.a;els[2].classList.remove('out');if(!manual)later(function(){show((k+1)%4,true)},5200)},300);return}
+var id=q.p[i++],e=EE[id],ab=id.split('-');e.classList.add('hl');e.p.setAttribute('marker-end','url(#a1)');NE[ab[0]].classList.add('hl');NE[ab[1]].classList.add('hl');later(step,anim?420:0)})()},anim?1100:350)}
+function poke(k){manual=true;clearTimeout(idle);show((k+4)%4,false);idle=setTimeout(function(){manual=false;show((cur+1)%4,true)},30000)}
+document.addEventListener('click',function(){poke(cur+1)});
+document.addEventListener('keydown',function(e){if(e.key==='ArrowRight'||e.key===' ')poke(cur+1);if(e.key==='ArrowLeft')poke(cur-1);if('1234'.indexOf(e.key)>-1&&e.key)poke(+e.key-1)});
+var st=document.getElementById('st');function fit(){var s=Math.min(innerWidth/1600,innerHeight/640);st.style.transform='translate('+(innerWidth-1600*s)/2+'px,'+(innerHeight-640*s)/2+'px) scale('+s+')'}
+addEventListener('resize',fit);fit();setTimeout(function(){show(0,true)},600);
+</script></body></html>

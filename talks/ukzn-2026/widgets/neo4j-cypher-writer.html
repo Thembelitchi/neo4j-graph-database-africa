@@ -1,0 +1,83 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Cypher Graph Writer</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap"><meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+html,body{margin:0;height:100%;background:#0B1426;color-scheme:dark;overflow:hidden;font-family:"Public Sans","Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:#EEF2F8}
+#st{position:absolute;left:0;top:0;width:1600px;height:640px;transform-origin:0 0;display:flex;gap:24px}
+.code{flex:0 0 760px;box-sizing:border-box;background:#0E1A2F;border:1px solid #24365A;border-radius:18px;padding:26px 32px;display:flex;flex-direction:column}
+.hd{display:flex;align-items:center;gap:16px;padding-bottom:18px;border-bottom:1px solid #24365A;margin-bottom:22px}
+.chip{font:600 20px/1 "Fira Code",Consolas,Menlo,monospace;letter-spacing:2px;color:#0B1426;background:#F79767;border-radius:999px;padding:8px 14px;white-space:nowrap}
+.ttl{font-size:27px;font-weight:600}
+#code{flex:1;font:400 24px/1.5 "Fira Code","JetBrains Mono",Consolas,Menlo,monospace;white-space:pre}
+#res{font:500 22px/1.3 "Fira Code",Consolas,Menlo,monospace;color:#5EEAD4;min-height:30px;opacity:0;transition:opacity .4s;border-top:1px solid #24365A;padding-top:16px}
+#res.on{opacity:1}
+.caret{display:inline-block;width:12px;height:26px;background:#4FB3FF;vertical-align:-4px;animation:bl 1s steps(1) infinite}
+@keyframes bl{50%{opacity:0}}
+.gp{flex:1;position:relative;border-radius:18px;border:1px solid #1B2A47;background:radial-gradient(circle at 60% 40%,#13264A 0%,#0B1426 70%)}
+.gp svg{position:absolute;left:0;top:0;width:100%;height:100%}
+.tag{position:absolute;left:22px;bottom:16px;font:400 20px "Fira Code",Consolas,Menlo,monospace;color:#A9B4C8}
+.n{opacity:0;transform:scale(.4);transform-box:fill-box;transform-origin:center;transition:opacity .5s,transform .6s cubic-bezier(.3,1.6,.5,1)}
+.n.on{opacity:1;transform:scale(1)}
+.e{opacity:0;transition:opacity .4s}
+.e.on{opacity:1}
+.e path{stroke:#8A94A6;stroke-width:3;fill:none;transition:stroke-dashoffset .9s ease,stroke .4s,stroke-width .4s}
+.e .lb{opacity:0;transition:opacity .5s .5s}
+.e.on .lb{opacity:1}
+.e.hl path{stroke:#5EEAD4;stroke-width:6}
+.n.hl circle{stroke:#5EEAD4;stroke-width:7}
+svg.dim .n.on:not(.hl),svg.dim .e.on:not(.hl){opacity:.22}
+</style></head>
+<body><div id="st">
+<div class="code"><div class="hd"><span class="chip" id="chip">STEP 1 / 6</span><span class="ttl" id="ttl"></span></div><div id="code"></div><div id="res"></div></div>
+<div class="gp"><svg id="g" viewBox="0 0 816 640" preserveAspectRatio="xMidYMid meet">
+<defs><marker id="a0" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#8A94A6"/></marker>
+<marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="3.6" markerHeight="3.6" orient="auto"><path d="M0 0L10 5L0 10z" fill="#5EEAD4"/></marker></defs>
+<g id="E"></g><g id="N"></g></svg><div class="tag" id="cnt">nodes 0 · relationships 0</div></div>
+</div>
+<script>
+var NS='http://www.w3.org/2000/svg',R=60;
+var N={P:[80,90,'#DA7194','Patient','PT-001'],S:[400,90,'#D8C7AE','Specimen','SP-1001'],T:[720,90,'#56C7E4','LabTest','MALDI-TOF'],I:[720,300,'#FFC454','Isolate','ISO-77'],O:[400,260,'#F16667','Pathogen','K. pneu.'],M:[720,520,'#C990C0','Mechanism','KPC'],D:[300,520,'#8DCC93','Drug','Meropenem'],C:[80,400,'#8DCC93','Drug','CZA']};
+var E={ps:['P','S','HAS_SPECIMEN',.5],st:['S','T','TESTED_BY',.5],ti:['T','I','IDENTIFIED',.5],io:['I','O','INSTANCE_OF',.5],im:['I','M','CARRIES',.5],md:['M','D','CONFERS_RESISTANCE_TO',.5],id:['I','D',"AST_RESULT {sir:'R'}",.5],ic:['I','C',"AST_RESULT {sir:'S'}",.6]};
+var S=[
+{t:'A patient and a specimen',c:["MERGE (p:Patient {id:'PT-001'})","CREATE (s:Specimen {id:'SP-1001'})","MERGE (p)-[:HAS_SPECIMEN]->(s)"],r:'Created 2 nodes, 1 relationship',n:'PS',e:['ps']},
+{t:'The lab identifies an isolate',c:["MATCH (s:Specimen {id:'SP-1001'})","MERGE (t:LabTest {method:'MALDI-TOF'})","MERGE (s)-[:TESTED_BY]->(t)","MERGE (t)-[:IDENTIFIED]->","      (i:Isolate {id:'ISO-77'})","MERGE (i)-[:INSTANCE_OF]->","      (:Pathogen {name:'K. pneumoniae'})"],r:'Created 3 nodes, 3 relationships',n:'TIO',e:['st','ti','io']},
+{t:'A resistance mechanism is detected',c:["MATCH (i:Isolate {id:'ISO-77'})","MERGE (m:Mechanism {name:'KPC',","                    gene:'blaKPC'})","MERGE (i)-[:CARRIES]->(m)"],r:'Created 1 node, 1 relationship',n:'M',e:['im']},
+{t:'Drug knowledge joins the graph',c:["MATCH (m:Mechanism {name:'KPC'})","MERGE (d:Drug {name:'Meropenem',","               class:'Carbapenem'})","MERGE (m)-[:CONFERS_RESISTANCE_TO]->(d)"],r:'Created 1 node, 1 relationship',n:'D',e:['md']},
+{t:'Lab results live on relationships',c:["MATCH (i:Isolate {id:'ISO-77'}),","      (d:Drug {name:'Meropenem'})","MERGE (c:Drug {name:'Ceftazidime-avibactam'})","MERGE (i)-[:AST_RESULT {sir:'R'}]->(d)","MERGE (i)-[:AST_RESULT {sir:'S'}]->(c)"],r:'Created 1 node, 2 relationships, set 2 properties',n:'C',e:['id','ic']},
+{t:'Ask a multi-hop question',c:["MATCH (:Patient {id:'PT-001'})","  -[:HAS_SPECIMEN]->()-[:TESTED_BY]->()","  -[:IDENTIFIED]->(:Isolate)","  -[:CARRIES]->(m)","  -[:CONFERS_RESISTANCE_TO]->(d:Drug)","RETURN m.name, d.name AS avoid"],r:'m.name: "KPC"  avoid: "Meropenem"  (1 row)',n:'',e:[],h:true}];
+var HN='PSTIMD',HE=['ps','st','ti','im','md'];
+var col={kw:'#4FB3FF',lb:'#E58AA9',rt:'#F79767',st:'#5EEAD4',tx:'#EEF2F8',cm:'#7F8BA3'};
+function tok(l){var re=/('[^']*')|\b(MATCH|MERGE|CREATE|RETURN|AS)\b|(:[A-Za-z_]+)|(\/\/.*$)/g,o=[],i=0,m;while((m=re.exec(l))){if(m.index>i)o.push([l.slice(i,m.index),col.tx]);var c=m[1]?col.st:m[2]?col.kw:m[4]?col.cm:(/^:[A-Z_]+$/.test(m[3])?col.rt:col.lb);o.push([m[0],c]);i=re.lastIndex}if(l.length>i)o.push([l.slice(i),col.tx]);return o}
+var g=document.getElementById('g'),GE=document.getElementById('E'),GN=document.getElementById('N'),cd=document.getElementById('code'),rs=document.getElementById('res');
+function mk(t,a,p){var e=document.createElementNS(NS,t);for(var k in a)e.setAttribute(k,a[k]);p.appendChild(e);return e}
+var NE={},EE={};
+for(var k in N){var d=N[k],gg=mk('g',{'class':'n'},GN);mk('circle',{cx:d[0],cy:d[1],r:R,fill:d[2],stroke:'rgba(0,0,0,.25)','stroke-width':3},gg);
+var t1=mk('text',{x:d[0],y:d[1]-4,'text-anchor':'middle','font-size':19,'font-weight':700,fill:'#0B1426'},gg);t1.textContent=d[3];
+var t2=mk('text',{x:d[0],y:d[1]+22,'text-anchor':'middle','font-size':17,fill:'#0B1426'},gg);t2.textContent=d[4];NE[k]=gg}
+for(var k in E){var e=E[k],a=N[e[0]],b=N[e[1]],dx=b[0]-a[0],dy=b[1]-a[1],L=Math.sqrt(dx*dx+dy*dy),ux=dx/L,uy=dy/L,
+x1=a[0]+ux*R,y1=a[1]+uy*R,x2=b[0]-ux*(R+3),y2=b[1]-uy*(R+3),ln=L-2*R-3,gg=mk('g',{'class':'e'},GE);
+var p=mk('path',{d:'M'+x1+' '+y1+'L'+x2+' '+y2,'marker-end':'url(#a0)'},gg);p.style.strokeDasharray=ln;p.style.strokeDashoffset=ln;
+var lx=x1+(x2-x1)*e[3],ly=y1+(y2-y1)*e[3],w=e[2].length*12+20,lg=mk('g',{'class':'lb'},gg);
+mk('rect',{x:lx-w/2,y:ly-16,width:w,height:32,rx:16,fill:'#0E1A2F',stroke:'#2E4470'},lg);
+var tt=mk('text',{x:lx,y:ly+7,'text-anchor':'middle','font-size':20,'font-family':'Fira Code,Consolas,Menlo,monospace',fill:'#F79767'},lg);tt.textContent=e[2];
+EE[k]=gg;gg.p=p;gg.ln=ln}
+var gen=0,tm=null,cur=-1,manual=false,idle=null;
+function later(f,ms){var my=gen;tm=setTimeout(function(){if(my===gen)f()},ms)}
+function render(k,n){cd.textContent='';var lines=S[k].c;for(var i=0;i!==lines.length&&n>0;i++){var dv=document.createElement('div'),sg=tok(lines[i]);for(var j=0;j!==sg.length&&n>0;j++){var s=document.createElement('span'),tx=sg[j][0].slice(0,n);n-=tx.length;s.textContent=tx;s.style.color=sg[j][1];dv.appendChild(s)}if(!dv.childNodes.length)dv.textContent=' ';cd.appendChild(dv)}
+var c=document.createElement('span');c.className='caret';(cd.lastChild||cd).appendChild(c)}
+function total(k){return S[k].c.join('').length}
+function on(el,v){el.classList.toggle('on',v)}
+function count(){var a=0,b=0;for(var k in NE)if(NE[k].classList.contains('on'))a++;for(var k in EE)if(EE[k].classList.contains('on'))b++;document.getElementById('cnt').textContent='nodes '+a+' · relationships '+b}
+function showE(k,v){var e=EE[k];on(e,v);e.p.style.strokeDashoffset=v?0:e.ln}
+function hl(v){g.classList.toggle('dim',v);for(var k in NE)NE[k].classList.toggle('hl',v&&HN.indexOf(k)>-1);for(var k in EE){var x=v&&HE.indexOf(k)>-1;EE[k].classList.toggle('hl',x);EE[k].p.setAttribute('marker-end',x?'url(#a1)':'url(#a0)')}}
+function reveal(k){var s=S[k];for(var i=0;i!==s.n.length;i++)on(NE[s.n[i]],true);s.e.forEach(function(x){showE(x,true)});if(s.h)hl(true);count()}
+function head(k){document.getElementById('chip').textContent='STEP '+(k+1)+' / 6';document.getElementById('ttl').textContent=S[k].t;rs.textContent=S[k].r;rs.classList.remove('on')}
+function clear(){for(var k in NE)on(NE[k],false);for(var k in EE)showE(k,false);hl(false);count()}
+function run(k){cur=k;head(k);var n=0,T=total(k);(function tick(){n+=2;render(k,n);if(T>n)later(tick,26);else later(function(){rs.classList.add('on');reveal(k);if(!manual)later(function(){k===5?reset():run(k+1)},k===5?7500:3800)},350)})()}
+function reset(){gen++;clear();cur=-1;document.getElementById('chip').textContent='READY';document.getElementById('ttl').textContent='An empty database';cd.textContent='';var d=document.createElement('div');d.style.color=col.cm;d.textContent='// nothing here yet - let us write a graph';cd.appendChild(d);rs.classList.remove('on');later(function(){run(0)},2200)}
+function jump(k){gen++;k=Math.max(0,Math.min(5,k));clear();for(var i=0;k>=i;i++)reveal(i);if(k!==5)hl(false);head(k);render(k,1e4);rs.classList.add('on');cur=k}
+function poke(dir){manual=true;clearTimeout(idle);jump(cur+dir);idle=setTimeout(function(){manual=false;gen++;cur===5?reset():run(cur+1)},30000)}
+document.addEventListener('click',function(){poke(1)});
+document.addEventListener('keydown',function(e){if(e.key==='ArrowRight'||e.key===' ')poke(1);if(e.key==='ArrowLeft')poke(-1);if(e.key==='r'){manual=false;clearTimeout(idle);reset()}});
+var st=document.getElementById('st');function fit(){var s=Math.min(innerWidth/1600,innerHeight/640);st.style.transform='translate('+(innerWidth-1600*s)/2+'px,'+(innerHeight-640*s)/2+'px) scale('+s+')'}
+addEventListener('resize',fit);fit();reset();
+</script></body></html>

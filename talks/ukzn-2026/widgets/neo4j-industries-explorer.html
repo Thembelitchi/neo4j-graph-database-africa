@@ -1,0 +1,51 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Neo4j Industries Explorer</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap"><meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+html,body{margin:0;height:100%;background:#0B1426;color-scheme:dark;overflow:hidden;font-family:"Public Sans","Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:#EEF2F8}
+#st{position:absolute;left:0;top:0;width:1600px;height:640px;transform-origin:0 0;display:flex;gap:28px}
+#grid{flex:0 0 680px;display:grid;grid-template-columns:1fr 1fr;grid-auto-rows:112px;gap:16px}
+.t{box-sizing:border-box;background:#0E1A2F;border:1px solid #24365A;border-radius:14px;padding:18px 20px;display:flex;flex-direction:column;justify-content:center;gap:6px;cursor:pointer;position:relative;overflow:hidden;transition:background .35s,border-color .35s,transform .35s}
+.t b{font-size:23px;font-weight:700;line-height:1.15}
+.t span{font-size:19px;color:#A9B4C8;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.t::before{content:"";position:absolute;left:0;top:0;bottom:0;width:6px;background:transparent;transition:background .35s}
+.t.on{background:#13284D;border-color:#5EEAD4;transform:translateX(6px)}
+.t.on::before{background:#5EEAD4}
+.t.on span{color:#D6DEEA}
+#card{flex:1;box-sizing:border-box;background:linear-gradient(160deg,#122648 0%,#0E1A2F 60%);border:1px solid #2E4470;border-radius:20px;padding:40px 48px 30px;display:flex;flex-direction:column;position:relative;overflow:hidden}
+.fade{transition:opacity .35s,transform .35s}.out{opacity:0;transform:translateY(10px)}
+#ind{font:600 20px/1 "Fira Code",Consolas,Menlo,monospace;letter-spacing:3px;text-transform:uppercase;color:#F79767}
+#org{font-size:40px;font-weight:700;margin-top:14px;line-height:1.1}
+#met{font-size:112px;font-weight:800;color:#5EEAD4;line-height:1;margin-top:26px;letter-spacing:-2px}
+#cap{font-size:26px;line-height:1.3;color:#EEF2F8;margin-top:10px;max-width:760px}
+#what{font-size:23px;line-height:1.4;color:#B9C4D6;margin-top:22px;padding-top:20px;border-top:1px solid #24365A;max-width:780px}
+#src{position:absolute;left:48px;bottom:30px;right:48px;font:400 17px "Fira Code",Consolas,Menlo,monospace;color:#7F8BA3}
+#bar{position:absolute;left:0;top:0;height:5px;background:#5EEAD4;width:0}
+</style></head>
+<body><div id="st"><div id="grid"></div>
+<div id="card"><div id="bar"></div><div class="fade" id="body"><div id="ind"></div><div id="org"></div><div id="met"></div><div id="cap"></div><div id="what"></div></div><div id="src" class="fade"></div></div></div>
+<script>
+var D=[
+['Investigative journalism','ICIJ · Panama Papers','2.6 TB','11.5 million leaked documents, connected in Neo4j and explored with Linkurious','Reporters followed company, officer, intermediary and address relationships to trace offshore networks. The work won the 2017 Pulitzer Prize for Explanatory Reporting.','Source: ICIJ; Neo4j ICIJ case study'],
+['Aerospace','NASA · Lessons Learned','$2M+','and at least a year saved toward Mission to Mars planning (David Meza, NASA)','Decades of lessons-learned reports, clustered by topic and linked as a knowledge graph, so engineers find past failures before they repeat them.','Source: neo4j.com/blog (NASA knowledge graph)'],
+['Medical research','DZD · Diabetes Research','1.8 B','nodes and 4.9 billion relationships in the DZDconnect knowledge graph','The German Center for Diabetes Research links clinical-study metadata, multi-omics data and literature across research sites; graph algorithms help surface new hypotheses.','Source: Neo4j DZD case study'],
+['Pharma R&D','Novartis','0.5 B','relationships linking text-mined literature, experimental data and biology','Graph algorithms look for gene, disease and compound "triangles" to help prioritise drug targets.','Source: neo4j.com/customer-stories/novartis'],
+['Open science','Hetionet · Project Rephetio','2.25 M','relationships across 47,031 nodes, built from 29 public resources','Scored 209,168 compound and disease pairs to predict drug-repurposing candidates, all openly available.','Source: Himmelstein et al., eLife 2017'],
+['Banking & fraud','BNP Paribas Personal Finance','20%','reduction in fraud across about 800,000 credit applications a year','Links reused applicant details across applications to expose fraud rings; graph embeddings feed the existing ML models.','Source: neo4j.com/customer-stories (vendor-published)'],
+['Fintech security','Intuit','75 M','graph updates per hour, protecting 100 million customers','A security knowledge graph maps network interdependencies; 500,000 DNS endpoints resolve in milliseconds.','Source: neo4j.com (vendor-published)'],
+['Transport','Transport for London','10%','congestion-reduction target for London\'s road-network digital twin','Live journey-time data in a graph of the road network. Incidents used to take 14 to 17 minutes to detect.','Source: TfL via neo4j.com; ITS International'],
+['Enterprise knowledge','Cisco','4 M+','employee hours saved with real-time graph analysis of documents','Connects company documents and the knowledge inside them, analysed as a graph in real time.','Source: neo4j.com/customer-stories (vendor-published)'],
+['Telecom','Telenor','min → ms','identity and access checks went from minutes to milliseconds','A graph for identity and access management. Comcast and BT also run customer-profile and network-inventory graphs.','Source: neo4j.com/use-cases/telecom']];
+var gr=document.getElementById('grid'),T=[],cur=-1,gen=0,manual=false,idle=null,DUR=6500;
+D.forEach(function(d,i){var t=document.createElement('div');t.className='t';var b=document.createElement('b');b.textContent=d[0];var s=document.createElement('span');s.textContent=d[1];t.appendChild(b);t.appendChild(s);t.addEventListener('click',function(ev){ev.stopPropagation();poke(i)});gr.appendChild(t);T.push(t)});
+function $(i){return document.getElementById(i)}
+function show(i,auto){gen++;var my=gen;cur=i;T.forEach(function(t,j){t.classList.toggle('on',j===i)});$('body').classList.add('out');$('src').classList.add('out');
+var bar=$('bar');bar.style.transition='none';bar.style.width='0';
+setTimeout(function(){if(my!==gen)return;var d=D[i];$('ind').textContent=d[0];$('org').textContent=d[1];$('met').textContent=d[2];$('cap').textContent=d[3];$('what').textContent=d[4];$('src').textContent=d[5];
+$('body').classList.remove('out');$('src').classList.remove('out');
+if(auto){void bar.offsetWidth;bar.style.transition='width '+(DUR-400)+'ms linear';bar.style.width='100%';setTimeout(function(){if(my===gen)show((i+1)%D.length,true)},DUR-400)}},380)}
+function poke(i){manual=true;clearTimeout(idle);show((i+D.length)%D.length,false);idle=setTimeout(function(){manual=false;show((cur+1)%D.length,true)},30000)}
+document.addEventListener('keydown',function(e){if(e.key==='ArrowRight'||e.key===' ')poke(cur+1);if(e.key==='ArrowLeft')poke(cur-1)});
+$('card').addEventListener('click',function(){poke(cur+1)});
+var st=$('st');function fit(){var s=Math.min(innerWidth/1600,innerHeight/640);st.style.transform='translate('+(innerWidth-1600*s)/2+'px,'+(innerHeight-640*s)/2+'px) scale('+s+')'}
+addEventListener('resize',fit);fit();show(0,true);
+</script></body></html>
