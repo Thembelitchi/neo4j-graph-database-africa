@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Graph Database Africa · Neo4j</title>
-<meta name="description" content="Neo4j talks, live demos and embeddable widgets from Graph Database Africa, by Thembelihle Gumede.">
+<meta name="description" content="Four Neo4j talks, live demos and embeddable widgets from Graph Database Africa, by Thembelihle Gumede.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Public+Sans:wght@400;500;600&family=Fira+Code:wght@400;500&display=swap">
 <style>
@@ -24,6 +24,7 @@ h1{font:800 clamp(38px,7vw,72px)/1.02 var(--display);margin:14px 0 18px;text-wra
 .lede{color:var(--muted);max-width:60ch;margin:0;font-size:19px}
 h2{font:700 13px/1 var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin:0 0 18px}
 .talk{border-top:1px solid var(--line);padding-top:26px;display:grid;grid-template-columns:200px 1fr;gap:12px 32px}
+.talk+.talk{margin-top:30px}
 .meta{font:400 14px/1.5 var(--mono);color:var(--muted)}
 .talk h3{font:700 clamp(24px,3.4vw,32px)/1.15 var(--display);margin:0 0 8px}
 .talk p{margin:0 0 18px;color:var(--muted);max-width:62ch}
@@ -46,21 +47,60 @@ footer a{color:var(--fg)}
   <header>
     <div class="eyebrow">Graph Database Africa · Neo4j community, Southern Africa</div>
     <h1>Connected data, made in Africa</h1>
-    <p class="lede">Talks, live demos and embeddable widgets for learning knowledge graphs, Cypher and GraphRAG. Built for students, lab scientists and engineers across the continent.</p>
+    <p class="lede">Talks, live demos and embeddable widgets for learning knowledge graphs, Cypher, graph data science and GraphRAG. Built for students, lab scientists and engineers across the continent.</p>
   </header>
 
   <section>
     <h2>Talks</h2>
     <article class="talk">
-      <div class="meta">UKZN guest lecture<br>2026 · 45 min</div>
+      <div class="meta">Guest lecture<br>2026 · 45 min</div>
       <div>
         <h3>The Power of the Network</h3>
         <p>An introduction to knowledge graphs and enterprise graph data science: why JOINs struggle, how Cypher writes a graph, landmark Neo4j stories, and grounding AI with GraphRAG.</p>
         <div class="links">
-          <a class="btn" href="talks/ukzn-2026/">Open Graph Lab</a>
-          <a class="ghost" href="talks/ukzn-2026/widgets/neo4j-cypher-writer.html">Cypher writer</a>
-          <a class="ghost" href="talks/ukzn-2026/widgets/neo4j-clinical-knowledge-graph.html">Clinical knowledge graph</a>
-          <a class="ghost" href="talks/ukzn-2026/widgets/neo4j-industries-explorer.html">Industries explorer</a>
+          <a class="btn" href="talks/power-of-the-network/">Open Graph Lab</a>
+          <a class="ghost" href="talks/power-of-the-network/widgets/neo4j-cypher-writer.html">Cypher writer</a>
+          <a class="ghost" href="talks/power-of-the-network/widgets/neo4j-clinical-knowledge-graph.html">Clinical knowledge graph</a>
+          <a class="ghost" href="talks/power-of-the-network/widgets/neo4j-industries-explorer.html">Industries explorer</a>
+        </div>
+      </div>
+    </article>
+    <article class="talk">
+      <div class="meta">Guest lecture<br>2026 · 60 min</div>
+      <div>
+        <h3>One Customer, Many Records</h3>
+        <p>Enterprise master data management with a graph: entity resolution into golden records, real-time recommendations by traversal, and a Customer 360 assistant that answers from the graph.</p>
+        <div class="links">
+          <a class="btn" href="talks/one-customer-many-records/">Open Graph Lab</a>
+          <a class="ghost" href="talks/one-customer-many-records/widgets/identity-resolution.html">Identity resolution</a>
+          <a class="ghost" href="talks/one-customer-many-records/widgets/recommendation-paths.html">Recommendation paths</a>
+          <a class="ghost" href="talks/one-customer-many-records/widgets/customer360-assistant.html">Customer 360 assistant</a>
+        </div>
+      </div>
+    </article>
+    <article class="talk">
+      <div class="meta">Guest lecture<br>2026 · 60 min</div>
+      <div>
+        <h3>When One Thing Breaks</h3>
+        <p>Dependency graphs for site reliability engineering: blast radius and root cause as two walks, finding the components that are load-bearing rather than merely popular, and why a cycle breaks your deploy order.</p>
+        <div class="links">
+          <a class="btn" href="talks/when-one-thing-breaks/">Open Graph Lab</a>
+          <a class="ghost" href="talks/when-one-thing-breaks/widgets/blast-radius.html">Blast radius</a>
+          <a class="ghost" href="talks/when-one-thing-breaks/widgets/criticality.html">Criticality audit</a>
+          <a class="ghost" href="talks/when-one-thing-breaks/widgets/deploy-order.html">Deploy order</a>
+        </div>
+      </div>
+    </article>
+    <article class="talk">
+      <div class="meta">Guest lecture<br>2026 · 60 min</div>
+      <div>
+        <h3>Follow the Ring</h3>
+        <p>Graph data science for circular fraud networks: finding money rings in time order, following scam payments through mule trees, and exposing collusion rings through shared devices.</p>
+        <div class="links">
+          <a class="btn" href="talks/follow-the-ring/">Open Graph Lab</a>
+          <a class="ghost" href="talks/follow-the-ring/widgets/ring-hunter.html">Ring hunter</a>
+          <a class="ghost" href="talks/follow-the-ring/widgets/follow-the-money.html">Follow the money</a>
+          <a class="ghost" href="talks/follow-the-ring/widgets/shared-identifiers.html">Collusion ring</a>
         </div>
       </div>
     </article>
@@ -71,6 +111,7 @@ footer a{color:var(--fg)}
     <ul class="learn">
       <li><a href="https://graphacademy.neo4j.com/" target="_blank" rel="noopener">Neo4j GraphAcademy</a><span>Free courses and two free certifications</span></li>
       <li><a href="https://neo4j.com/product/auradb/" target="_blank" rel="noopener">Neo4j AuraDB</a><span>A free cloud graph database to practise on</span></li>
+      <li><a href="https://neo4j.com/docs/graph-data-science/current/" target="_blank" rel="noopener">Neo4j Graph Data Science</a><span>Community detection, similarity, centrality and embeddings</span></li>
       <li><a href="https://neo4j.com/docs/neo4j-graphrag-python/current/" target="_blank" rel="noopener">neo4j-graphrag for Python</a><span>Build GraphRAG pipelines</span></li>
     </ul>
   </section>

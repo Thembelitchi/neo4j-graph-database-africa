@@ -1,0 +1,77 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Identity Resolution</title><meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+html,body{margin:0;height:100%;background:#0B1426;color-scheme:dark;overflow:hidden;font-family:"Public Sans","Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:#EEF2F8}
+#st{position:absolute;left:0;top:0;width:1600px;height:640px;transform-origin:0 0;display:flex;gap:24px}
+.cap{flex:0 0 560px;box-sizing:border-box;background:#0E1A2F;border:1px solid #24365A;border-radius:18px;padding:28px 32px;display:flex;flex-direction:column;gap:16px}
+.chip{align-self:flex-start;font:600 20px/1 "Fira Code",Consolas,Menlo,monospace;letter-spacing:2px;color:#0B1426;background:#5EEAD4;border-radius:999px;padding:8px 14px}
+.chip.bad{background:#F16667}
+#t{font-size:30px;font-weight:700;line-height:1.2}
+#x{font-size:22px;line-height:1.45;color:#BFCBDD;min-height:96px}
+#s{font-size:40px;font-weight:800;color:#5EEAD4;line-height:1.1}
+#s.bad{color:#F16667}
+#c{font:400 19px/1.5 "Fira Code",Consolas,Menlo,monospace;color:#EEF2F8;background:#0B1426;border:1px solid #1E2F50;border-radius:10px;padding:10px 14px;white-space:pre}
+#g{display:flex;flex-direction:column;gap:8px}
+#g div{font-size:19px;background:#12203A;border:1px solid #2E6F6A;border-radius:10px;padding:8px 12px}
+#g b{color:#5EEAD4}
+.lg{margin-top:auto;display:flex;gap:18px;font-size:18px;color:#A9B4C8}
+.lg i{display:inline-block;width:14px;height:14px;border-radius:4px;margin-right:6px;vertical-align:-1px}
+.fade{transition:opacity .35s}.out{opacity:0}
+.gp{flex:1;position:relative;border-radius:18px;border:1px solid #1B2A47;background:radial-gradient(circle at 50% 45%,#13264A 0%,#0B1426 72%)}
+.gp svg{position:absolute;left:0;top:0;width:100%;height:100%}
+.h,.ln,.id{transition:opacity .5s}
+.h{opacity:0}.h.on{opacity:1}
+.ln{opacity:0}.ln.on{opacity:1}
+.id{opacity:0}.id.on{opacity:1}
+.cc.off{opacity:.35}
+</style></head>
+<body><div id="st">
+<div class="cap"><span class="chip" id="chip">STEP 1 / 6</span><div id="t" class="fade"></div><div id="x" class="fade"></div><div id="s" class="fade"></div><div id="c" class="fade"></div><div id="g"></div>
+<div class="lg"><span><i style="background:#DA7194"></i>CRM</span><span><i style="background:#4C8EDA"></i>Online shop</span><span><i style="background:#FFC454"></i>Support desk</span><span><i style="background:#8A94A6;border-radius:50%"></i>Identifier</span></div></div>
+<div class="gp"><svg id="sv" viewBox="0 0 1016 640" preserveAspectRatio="xMidYMid meet"><defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10z" fill="#8A94A6"/></marker><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10z" fill="#F16667"/></marker></defs><g id="H"></g><g id="L"></g><g id="I"></g><g id="R"></g></svg></div>
+</div>
+<script>
+var NS='http://www.w3.org/2000/svg',X=[110,470,830],Y=[95,250,405,560],SC={CRM:'#DA7194',SHOP:'#4C8EDA',SUPPORT:'#FFC454'};
+var R=[['CRM-001','CRM','Thandi Mokoena',0,0],['WEB-7781','SHOP','T. Mokoena',0,1],['SUP-3302','SUPPORT','Thandi M',0,2],
+['CRM-002','CRM','Sipho Dlamini',1,0],['WEB-7790','SHOP','Sipho Dlamini',1,1],['SUP-3310','SUPPORT','S. Dlamini',1,2],
+['WEB-8041','SHOP','Lerato Naidoo',2,1],['SUP-3321','SUPPORT','Lerato N',2,2],['WEB-8100','SHOP','Ayesha Khan',3,1]];
+var I=[['e1','@',290,165,['CRM-001','WEB-7781']],['p1','TEL',470,30,['CRM-001','SUP-3302']],['d1','DEV',650,165,['WEB-7781','SUP-3302']],
+['e2','@',290,320,['CRM-002','WEB-7790']],['d2','DEV',650,320,['WEB-7790','SUP-3310']],['d3','DEV',650,475,['WEB-8041','SUP-3321']],
+['e4','@',700,560,['WEB-8100']],['cc','TEL',968,250,['SUP-3302','SUP-3310','SUP-3321']]];
+var REL={'@':'HAS_EMAIL',TEL:'HAS_PHONE',DEV:'USES_DEVICE'};var HP=[[12,198],[205,352],[360,507],[514,612]];
+function mk(t,a,p){var e=document.createElementNS(NS,t);for(var k in a)e.setAttribute(k,a[k]);p.appendChild(e);return e}
+var pos={},H=document.getElementById('H'),L=document.getElementById('L'),IG=document.getElementById('I'),RG=document.getElementById('R'),halos=[],lines={},ids={};
+R.forEach(function(r){var x=X[r[4]],y=Y[r[3]];pos[r[0]]=[x,y];var g=mk('g',{},RG);
+mk('rect',{x:x-88,y:y-30,width:176,height:60,rx:12,fill:SC[r[1]],stroke:'rgba(0,0,0,.3)','stroke-width':2},g);
+var a=mk('text',{x:x,y:y-6,'text-anchor':'middle','font-size':15,'font-family':'Fira Code,Consolas,monospace',fill:'#0B1426'},g);a.textContent=r[0];
+var b=mk('text',{x:x,y:y+17,'text-anchor':'middle','font-size':18,'font-weight':700,fill:'#0B1426'},g);b.textContent=r[2]});
+HP.forEach(function(h){halos.push(mk('rect',{'class':'h',x:10,y:h[0],width:920,height:h[1]-h[0],rx:20,fill:'rgba(94,234,212,.07)',stroke:'#5EEAD4','stroke-width':2.5,'stroke-dasharray':'10 8'},H))});
+var big=mk('rect',{'class':'h',x:6,y:8,width:1004,height:502,rx:22,fill:'rgba(241,102,103,.09)',stroke:'#F16667','stroke-width':3},H);
+I.forEach(function(d){var g=mk('g',{'class':'id'+(d[0]==='cc'?' cc':'')},IG);lines[d[0]]=[];
+d[4].forEach(function(r){var p=pos[r],dx=d[2]-p[0],dy=d[3]-p[1],D=Math.sqrt(dx*dx+dy*dy),ux=dx/D,uy=dy/D,s=Math.min(88/Math.abs(dx||1e-9),30/Math.abs(dy||1e-9)),rr=(d[0]==='cc'?28:21)+3,x1=p[0]+dx*s,y1=p[1]+dy*s,x2=d[2]-ux*rr,y2=d[3]-uy*rr,cc=d[0]==='cc',g2=mk('g',{'class':'ln'},L);mk('line',{x1:x1,y1:y1,x2:x2,y2:y2,stroke:cc?'#F16667':'#8A94A6','stroke-width':3,'marker-end':cc?'url(#arr)':'url(#ar)'},g2);var tp=REL[d[1]],w=tp.length*8.2+12,sl=Math.sqrt((x2-x1)*(x2-x1)+(y2-y1)*(y2-y1));if(sl>w+16){var lx=(x1+x2)/2,ly=(y1+y2)/2;mk('rect',{x:lx-w/2,y:ly-11,width:w,height:22,rx:11,fill:'#0E1A2F',stroke:'#2E4470'},g2);var tt=mk('text',{x:lx,y:ly+5,'text-anchor':'middle','font-size':13,'font-family':'Fira Code,Consolas,monospace',fill:'#F79767'},g2);tt.textContent=tp}lines[d[0]].push(g2)});
+mk('circle',{cx:d[2],cy:d[3],r:d[0]==='cc'?28:21,fill:d[0]==='cc'?'#F16667':'#8A94A6',stroke:'#0B1426','stroke-width':3},g);
+var t=mk('text',{x:d[2],y:d[3]+5,'text-anchor':'middle','font-size':d[1]==='@'?20:13,'font-weight':700,fill:'#0B1426','font-family':'Fira Code,Consolas,monospace'},g);t.textContent=d[1];
+if(d[0]==='cc'){var u=mk('text',{x:1012,y:d[3]+54,'text-anchor':'end','font-size':14,fill:'#F16667'},g);u.textContent='call centre'}ids[d[0]]=g});
+var S=[
+{t:'Three systems, nine records',x:'The CRM, the online shop and the support desk each keep their own customer table. Nothing links them.',s:'9 records',c:'// no shared customer key'},
+{t:'Identifiers become nodes',x:'Emails, phone numbers and device IDs become nodes. Records that share one are now connected.',s:'9 records · 7 identifiers',c:'MERGE (r)-[:HAS_EMAIL]->\n      (:Email {address:$email})'},
+{t:'Connected records = one person',x:'Weakly Connected Components groups everything reachable through shared identifiers into a candidate person.',s:'9 records → 4 people',c:"CALL gds.wcc.stream('identities')"},
+{t:'One shared number merges strangers',x:'Support logged three customers with the call-centre line. WCC is transitive, so three different people collapse into one.',s:'9 records → 2 people',c:'// 0860 100 200 on 3 records',bad:1},
+{t:'Add a supernode guard',x:'Skip identifiers shared by too many records, and trust strong identifiers (email, ID) over weak ones (a shared phone).',s:'Back to 4 people',c:'WHERE COUNT { (i)<--() } <= 2'},
+{t:'Golden records',x:'Each person gets one golden record. Survivorship rules pick which source wins each field: here the CRM wins the name.',s:'',c:'SET p.name = crm.name'}];
+var GOLD=[['Thandi Mokoena','CRM · SHOP · SUPPORT'],['Sipho Dlamini','CRM · SHOP · SUPPORT'],['Lerato Naidoo','SHOP · SUPPORT'],['Ayesha Khan','SHOP']];
+function setIds(on,cc){I.forEach(function(d){var v=d[0]==='cc'?cc:on;ids[d[0]].classList.toggle('on',v);lines[d[0]].forEach(function(l){l.classList.toggle('on',v)})})}
+function apply(k){var o=k>=1;setIds(o,k>=3);ids.cc.classList.toggle('off',k>=4);lines.cc.forEach(function(l){l.setAttribute('stroke-dasharray',k>=4?'8 8':'none');l.style.opacity=k>=4?.35:''});
+var per=k===2||k>=4;halos.forEach(function(h,i){h.classList.toggle('on',per||(k===3&&i===3))});big.classList.toggle('on',k===3);
+var g=document.getElementById('g');g.textContent='';if(k===5)GOLD.forEach(function(p,i){var d=document.createElement('div');var b=document.createElement('b');b.textContent='PER-'+(i+1)+'  '+p[0];d.appendChild(b);d.appendChild(document.createTextNode('  ·  '+p[1]));g.appendChild(d)})}
+var cur=-1,gen=0,manual=false,idle=null;
+function show(k){gen++;var my=gen;cur=k;var q=S[k],els=['t','x','s','c'].map(function(i){return document.getElementById(i)});els.forEach(function(e){e.classList.add('out')});
+setTimeout(function(){if(my!==gen)return;var ch=document.getElementById('chip');ch.textContent='STEP '+(k+1)+' / 6';ch.classList.toggle('bad',!!q.bad);
+els[0].textContent=q.t;els[1].textContent=q.x;els[2].textContent=q.s;els[2].classList.toggle('bad',!!q.bad);els[3].textContent=q.c;els[2].style.display=q.s?'':'none';
+els.forEach(function(e){e.classList.remove('out')});apply(k);if(!manual)setTimeout(function(){if(my===gen)show((k+1)%6)},k===5?7000:5200)},350)}
+function poke(k){manual=true;clearTimeout(idle);show((k+6)%6);idle=setTimeout(function(){manual=false;show((cur+1)%6)},30000)}
+document.addEventListener('click',function(){poke(cur+1)});
+document.addEventListener('keydown',function(e){if(e.key==='ArrowRight'||e.key===' ')poke(cur+1);if(e.key==='ArrowLeft')poke(cur-1)});
+var st=document.getElementById('st');function fit(){var s=Math.min(innerWidth/1600,innerHeight/640);st.style.transform='translate('+(innerWidth-1600*s)/2+'px,'+(innerHeight-640*s)/2+'px) scale('+s+')'}
+addEventListener('resize',fit);fit();show(0);
+</script></body></html>

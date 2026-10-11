@@ -1,0 +1,71 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Recommendation Paths</title><meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+html,body{margin:0;height:100%;background:#0B1426;color-scheme:dark;overflow:hidden;font-family:"Public Sans","Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:#EEF2F8}
+#st{position:absolute;left:0;top:0;width:1600px;height:640px;transform-origin:0 0;display:flex;gap:24px}
+.cap{flex:0 0 600px;box-sizing:border-box;background:#0E1A2F;border:1px solid #24365A;border-radius:18px;padding:28px 32px;display:flex;flex-direction:column;gap:16px}
+.chip{align-self:flex-start;font:600 20px/1 "Fira Code",Consolas,Menlo,monospace;letter-spacing:2px;color:#0B1426;background:#5EEAD4;border-radius:999px;padding:8px 14px}
+.chip.bad{background:#F16667}
+#t{font-size:30px;font-weight:700;line-height:1.2}
+#x{font-size:22px;line-height:1.45;color:#BFCBDD;min-height:96px}
+#c{font:400 19px/1.5 "Fira Code",Consolas,Menlo,monospace;background:#0B1426;border:1px solid #1E2F50;border-radius:10px;padding:10px 14px;white-space:pre;color:#EEF2F8}
+table{border-collapse:collapse;font-size:21px;width:100%}
+th{font:500 16px "Fira Code",Consolas,monospace;letter-spacing:1px;color:#A9B4C8;text-align:left;padding:4px 8px;border-bottom:1px solid #24365A}
+td{padding:6px 8px;border-bottom:1px solid #1B2A47;font-variant-numeric:tabular-nums}
+td.n{text-align:right;font-family:"Fira Code",Consolas,monospace}
+tr.top td{color:#5EEAD4;font-weight:700}
+tr.warn td{color:#F79767}
+.fade{transition:opacity .35s}.out{opacity:0}
+.gp{flex:1;position:relative;border-radius:18px;border:1px solid #1B2A47;background:radial-gradient(circle at 50% 45%,#13264A 0%,#0B1426 72%)}
+.gp svg{position:absolute;left:0;top:0;width:100%;height:100%}
+line{transition:stroke .35s,stroke-width .35s,opacity .35s}
+.nd{transition:opacity .35s}
+svg.dim .nd:not(.hl){opacity:.3}
+.nd.hl circle,.nd.hl rect{stroke:#5EEAD4;stroke-width:5}
+</style></head>
+<body><div id="st">
+<div class="cap"><span class="chip" id="chip">STEP 1 / 7</span><div id="t" class="fade"></div><div id="x" class="fade"></div><div id="c" class="fade"></div><div id="tb" class="fade"></div></div>
+<div class="gp"><svg id="sv" viewBox="0 0 1016 640" preserveAspectRatio="xMidYMid meet"><defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="#8A94A6"/></marker></defs><g id="E"></g><g id="LB"></g><g id="N"></g>
+<text x="150" y="626" text-anchor="middle" font-size="16" fill="#A9B4C8" font-family="Fira Code,Consolas,monospace">:Person</text>
+<text x="820" y="30" text-anchor="middle" font-size="16" fill="#A9B4C8" font-family="Fira Code,Consolas,monospace" id="plab">:Product</text></svg></div>
+</div>
+<script>
+var NS='http://www.w3.org/2000/svg';
+var P={T:['Thandi',90],S:['Sipho',210],L:['Lerato',330],A:['Ayesha',450],B:['Bongani',570]};
+var Q={shoes:['Trail Running Shoes',70],gels:['Energy Gels',158],vest:['Hydration Vest',246],watch:['GPS Watch',334],lamp:['Headlamp',422],yoga:['Yoga Mat',510],bottle:['Water Bottle',598]};
+var BUY=[['T','shoes'],['T','gels'],['S','shoes'],['S','vest'],['S','lamp'],['L','shoes'],['L','vest'],['L','watch'],['A','gels'],['A','vest'],['A','yoga'],['B','yoga'],['B','bottle']];
+var BOTTLE=[['S','bottle'],['L','bottle'],['A','bottle']];
+function mk(t,a,p){var e=document.createElementNS(NS,t);for(var k in a)e.setAttribute(k,a[k]);p.appendChild(e);return e}
+var sv=document.getElementById('sv'),EG=document.getElementById('E'),NG=document.getElementById('N'),EL={},ND={};
+var LB={},CNT={};function edge(b,extra){var a=P[b[0]],q=Q[b[1]];var l=mk('line',{x1:190,y1:a[1],x2:703,y2:q[1],stroke:'#4A5A78','stroke-width':2.5,'marker-end':'url(#ar)'},EG);if(extra){l.setAttribute('stroke-dasharray','8 7');l.style.opacity=0}EL[b[0]+'-'+b[1]]=l;var i=CNT[b[0]]=(CNT[b[0]]||0)+1,t=0.12+0.2*(i-1),lx=190+513*t,ly=a[1]+(q[1]-a[1])*t,g=mk('g',{opacity:0},document.getElementById('LB'));mk('rect',{x:lx-46,y:ly-12,width:92,height:24,rx:12,fill:'#0E1A2F',stroke:'#2E4470'},g);var tx=mk('text',{x:lx,y:ly+5,'text-anchor':'middle','font-size':13,'font-family':'Fira Code,Consolas,monospace',fill:'#F79767'},g);tx.textContent='PURCHASED';LB[b[0]+'-'+b[1]]=g}
+BUY.forEach(function(b){edge(b)});BOTTLE.forEach(function(b){edge(b,1)});
+for(var k in P){var g=mk('g',{'class':'nd'},NG);mk('circle',{cx:150,cy:P[k][1],r:40,fill:k==='T'?'#5EEAD4':'#DA7194',stroke:'rgba(0,0,0,.3)','stroke-width':3},g);var t=mk('text',{x:150,y:P[k][1]+6,'text-anchor':'middle','font-size':16,'font-weight':700,fill:'#0B1426'},g);t.textContent=P[k][0];ND[k]=g}
+for(var k in Q){var g=mk('g',{'class':'nd'},NG);mk('rect',{x:705,y:Q[k][1]-26,width:230,height:52,rx:12,fill:'#8DCC93',stroke:'rgba(0,0,0,.3)','stroke-width':3},g);var t=mk('text',{x:820,y:Q[k][1]+7,'text-anchor':'middle','font-size':19,'font-weight':700,fill:'#0B1426'},g);t.textContent=Q[k][0];ND[k]=g}
+function scores(withBottle){var buys=BUY.concat(withBottle?BOTTLE:[]),own=buys.filter(function(b){return b[0]==='T'}).map(function(b){return b[1]});
+var ov={};buys.forEach(function(b){if(b[0]!=='T'&&own.indexOf(b[1])>-1)ov[b[0]]=(ov[b[0]]||0)+1});
+var sc={},pop={};buys.forEach(function(b){pop[b[1]]=(pop[b[1]]||0)+1;if(ov[b[0]]&&own.indexOf(b[1])<0)sc[b[1]]=(sc[b[1]]||0)+ov[b[0]]});
+return Object.keys(sc).map(function(k){return [k,sc[k],sc[k]/Math.log(2+pop[k]),pop[k]]})}
+var S=[
+{t:"Start from Thandi's history",x:'Thandi (one golden record, three source systems) bought trail shoes and energy gels.',c:"MATCH (t:Person {id:'PER-1'})\n      -[:PURCHASED]->(p:Product)",e:['T-shoes','T-gels'],n:['T','shoes','gels']},
+{t:'Who else bought the same things?',x:'Walk back from her products to other people. Sipho and Lerato bought the shoes; Ayesha bought the gels.',c:'MATCH (p)<-[:PURCHASED]-(peer:Person)',e:['T-shoes','T-gels','S-shoes','L-shoes','A-gels'],n:['T','shoes','gels','S','L','A']},
+{t:'What did those peers buy?',x:"Walk forward from the peers to products Thandi doesn't own yet. These are the candidates.",c:'MATCH (peer)-[:PURCHASED]->(rec)\nWHERE NOT rec IN owned',e:['S-shoes','L-shoes','A-gels','S-vest','L-vest','A-vest','S-lamp','L-watch','A-yoga'],n:['S','L','A','vest','lamp','watch','yoga']},
+{t:'Score: count the peers',x:'Three peers lead to the hydration vest. No training step, and the answer is fresh the moment a purchase lands.',c:'RETURN rec.name, count(peer) AS score\nORDER BY score DESC',e:['S-vest','L-vest','A-vest'],n:['T','S','L','A','vest'],tb:'raw'},
+{t:'A best-seller sneaks in',x:'Now most people buy the water bottle. Raw counts tie it with the vest, and popular items crowd out relevant ones.',c:'// water bottle: bought by 4 of 5 people',e:['S-bottle','L-bottle','A-bottle','B-bottle','S-vest','L-vest','A-vest'],n:['S','L','A','B','bottle','vest'],tb:'raw',bot:1,bad:1},
+{t:'Damp the popularity',x:'Divide each score by the log of how popular the item is. Relevant beats merely popular, and the vest wins again.',c:'score / log(2 + popularity)',e:['S-vest','L-vest','A-vest'],n:['vest'],tb:'damp',bot:1},
+{t:'Explain the recommendation',x:'The path is the explanation: people who bought your shoes and gels (Sipho, Lerato, Ayesha) also bought the hydration vest.',c:'RETURN path  // show the evidence',e:['T-shoes','T-gels','S-shoes','L-shoes','A-gels','S-vest','L-vest','A-vest'],n:['T','shoes','gels','S','L','A','vest'],bot:1}];
+function table(mode,bot){var d=document.getElementById('tb');d.textContent='';if(!mode)return;var rows=scores(bot);
+rows.sort(function(a,b){return mode==='raw'?(b[1]-a[1])||(b[3]-a[3]):b[2]-a[2]});
+var tb=document.createElement('table'),h=tb.insertRow();['candidate','peers','damped'].forEach(function(s,i){var th=document.createElement('th');th.textContent=s;if(i)th.style.textAlign='right';h.appendChild(th)});
+rows.forEach(function(r,i){var tr=tb.insertRow();if(i===0)tr.className='top';if(mode==='raw'&&r[0]==='bottle')tr.className='warn';[Q[r[0]][0],String(r[1]),mode==='damp'?r[2].toFixed(2):'·'].forEach(function(v,j){var c=tr.insertCell();c.textContent=v;if(j)c.className='n'})});d.appendChild(tb)}
+function apply(k){var q=S[k];sv.classList.add('dim');for(var id in EL){var on=q.e.indexOf(id)>-1,isB=id.indexOf('bottle')>-1&&id!=='B-bottle';EL[id].setAttribute('stroke',on?(id.indexOf('bottle')>-1?'#F79767':'#5EEAD4'):'#4A5A78');EL[id].setAttribute('stroke-width',on?5:2.5);EL[id].style.opacity=isB?(q.bot?(on?1:.35):0):(on?1:.35);LB[id].setAttribute('opacity',on?1:0)}
+for(var n in ND)ND[n].classList.toggle('hl',q.n.indexOf(n)>-1);table(q.tb,q.bot)}
+var cur=-1,gen=0,manual=false,idle=null;
+function show(k){gen++;var my=gen;cur=k;var q=S[k],els=['t','x','c','tb'].map(function(i){return document.getElementById(i)});els.forEach(function(e){e.classList.add('out')});
+setTimeout(function(){if(my!==gen)return;var ch=document.getElementById('chip');ch.textContent='STEP '+(k+1)+' / 7';ch.classList.toggle('bad',!!q.bad);els[0].textContent=q.t;els[1].textContent=q.x;els[2].textContent=q.c;apply(k);
+els.forEach(function(e){e.classList.remove('out')});if(!manual)setTimeout(function(){if(my===gen)show((k+1)%7)},k>=3?6500:4800)},350)}
+function poke(k){manual=true;clearTimeout(idle);show((k+7)%7);idle=setTimeout(function(){manual=false;show((cur+1)%7)},30000)}
+document.addEventListener('click',function(){poke(cur+1)});
+document.addEventListener('keydown',function(e){if(e.key==='ArrowRight'||e.key===' ')poke(cur+1);if(e.key==='ArrowLeft')poke(cur-1)});
+var st=document.getElementById('st');function fit(){var s=Math.min(innerWidth/1600,innerHeight/640);st.style.transform='translate('+(innerWidth-1600*s)/2+'px,'+(innerHeight-640*s)/2+'px) scale('+s+')'}
+addEventListener('resize',fit);fit();show(0);
+</script></body></html>

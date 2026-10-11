@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Live Neo4j demos from One Customer, Many Records, a guest lecture by Thembelihle Gumede.">
+<title>Graph Lab · One Customer, Many Records</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@700&family=Public+Sans:wght@400;500;600&family=Fira+Code:wght@400;500&display=swap">
+<style>
+html{margin:0}body{margin:0}*,*::before,*::after{box-sizing:border-box}
+/* Layout: one presenter console. Header, three tabs, a 1600x640 live stage, then the demo script. Single dark look to match the deck. */
+:root{
+  --bg:#0B1426; --panel:#12203A; --line:#24365A; --fg:#EEF2F8; --muted:#A9B4C8;
+  --mint:#5EEAD4; --blue:#4FB3FF; --amber:#F79767; --pink:#E58AA9;
+  --display:'Syne','Public Sans',Arial,sans-serif; --body:'Public Sans','Segoe UI',Arial,sans-serif; --mono:'Fira Code',Consolas,Menlo,monospace;
+  color-scheme:dark;
+}
+html,body{background:var(--bg);color:var(--fg)}
+body{font-family:var(--body);font-size:16px;line-height:1.5;padding-inline:clamp(16px,4vw,48px);padding-block:28px 48px}
+.wrap{max-width:1280px;margin-inline:auto;display:flex;flex-direction:column;gap:22px}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 24px}
+.eyebrow{font:500 12px/1 var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--mint)}
+h1{font:700 clamp(30px,5vw,48px)/1.05 var(--display);margin:8px 0 6px;text-wrap:balance}
+.sub{color:var(--muted);max-width:62ch;margin:0}
+.tabs{display:flex;flex-wrap:wrap;gap:8px}
+.tab{font:500 14px var(--body);color:var(--muted);background:transparent;border:1px solid var(--line);border-radius:999px;padding:9px 16px;cursor:pointer}
+.tab:hover{color:var(--fg);border-color:#3A527F}
+.tab[aria-selected="true"]{color:var(--bg);background:var(--mint);border-color:var(--mint);font-weight:600}
+.tab:focus-visible,button:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.stage{position:relative;width:100%;max-width:100%;aspect-ratio:1600/640;background:var(--bg);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.stage iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.keys{display:flex;flex-wrap:wrap;gap:8px 20px;color:var(--muted);font-size:14px}
+kbd{font:500 12px var(--mono);color:var(--fg);background:var(--panel);border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:1px 6px}
+.note{color:var(--muted);font-size:14px;margin:0}
+details{background:var(--panel);border:1px solid var(--line);border-radius:12px}
+summary{cursor:pointer;padding:14px 18px;font-weight:600;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:12px}
+summary::-webkit-details-marker{display:none}
+summary span{font:400 13px var(--mono);color:var(--muted)}
+.code-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:0 18px 10px;flex-wrap:wrap}
+.copy{font:600 13px var(--body);color:var(--bg);background:var(--blue);border:0;border-radius:8px;padding:8px 14px;cursor:pointer}
+pre{margin:0;padding:16px 18px 20px;overflow-x:auto;font:400 13.5px/1.6 var(--mono);color:var(--fg);border-top:1px solid var(--line);tab-size:2}
+.k{color:var(--blue)}.l{color:var(--pink)}.r{color:var(--amber)}.s{color:var(--mint)}.c{color:#7F8BA3}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <div class="eyebrow"><a href="../../" style="color:inherit;text-decoration:none">Graph Database Africa</a> · One Customer, Many Records · live demos</div>
+      <h1>Graph Lab</h1>
+      <p class="sub">The three live demos from <em>One Customer, Many Records</em>, with you in control. They play on their own; click or use the arrow keys to take over.</p>
+    </div>
+    <div class="tabs" role="tablist" aria-label="Demos">
+      <button class="tab" role="tab" id="t-0" aria-selected="true" data-src="widgets/identity-resolution.html">Identity resolution</button>
+      <button class="tab" role="tab" id="t-1" aria-selected="false" data-src="widgets/recommendation-paths.html">Recommendation paths</button>
+      <button class="tab" role="tab" id="t-2" aria-selected="false" data-src="widgets/customer360-assistant.html">Customer 360 assistant</button>
+    </div>
+  </header>
+
+  <div class="stage"><iframe id="frame" src="widgets/identity-resolution.html" title="Live demo"></iframe></div>
+
+  <div class="keys">
+    <span><kbd>click</kbd> or <kbd>→</kbd> next step</span>
+    <span><kbd>←</kbd> previous</span>
+    <span>Autoplay resumes after 30 seconds idle</span>
+  </div>
+  <p class="note">Click inside the demo once so it receives your arrow keys. All people, emails and phone numbers are fictional.</p>
+
+  <details>
+    <summary>Run the demo yourself in Neo4j <span>Cypher · Aura Free</span></summary>
+    <div class="code-head"><p class="note">Paste into the Aura query editor one block at a time. Expected results are in the comments. <a href="customer-360-demo.cypher" download style="color:var(--blue)">Download .cypher</a></p><button class="copy" id="copy" type="button">Copy script</button></div>
+<pre id="script"><span class="c">// =====================================================================</span>
+<span class="c">// One Customer, Many Records — Customer 360 + recommendations demo</span>
+<span class="c">// Graph Database Africa · Neo4j 5.26+ / 2026.x (Aura Free works)</span>
+<span class="c">// All people, emails and phone numbers are fictional.</span>
+<span class="c">// Run one block at a time (separate statements with the ; shown).</span>
+<span class="c">// =====================================================================</span>
+
+<span class="c">// ---------- 0. Reset (demo database only!) and constraints ----------</span>
+<span class="k">MATCH</span> (n) <span class="k">DETACH</span> <span class="k">DELETE</span> n;
+<span class="k">CREATE</span> <span class="k">CONSTRAINT</span> customer_id <span class="k">IF</span> <span class="k">NOT</span> <span class="k">EXISTS</span> <span class="k">FOR</span> (c:<span class="l">Customer</span>) <span class="k">REQUIRE</span> c.id <span class="k">IS</span> <span class="k">UNIQUE</span>;
+<span class="k">CREATE</span> <span class="k">CONSTRAINT</span> person_id   <span class="k">IF</span> <span class="k">NOT</span> <span class="k">EXISTS</span> <span class="k">FOR</span> (p:<span class="l">Person</span>)   <span class="k">REQUIRE</span> p.id <span class="k">IS</span> <span class="k">UNIQUE</span>;
+<span class="k">CREATE</span> <span class="k">CONSTRAINT</span> product_sku <span class="k">IF</span> <span class="k">NOT</span> <span class="k">EXISTS</span> <span class="k">FOR</span> (p:<span class="l">Product</span>)  <span class="k">REQUIRE</span> p.sku <span class="k">IS</span> <span class="k">UNIQUE</span>;
+
+<span class="c">// ---------- 1. Source records from three silos ----------</span>
+<span class="c">// Identifiers become their own nodes (one node per value).</span>
+<span class="k">UNWIND</span> [
+ {id:<span class="s">'CRM-001'</span>,  src:<span class="s">'CRM'</span>,     name:<span class="s">'Thandi Mokoena'</span>, email:<span class="s">'thandi.m@example.com'</span>, phone:<span class="s">'+27825550101'</span>, device:null},
+ {id:<span class="s">'WEB-7781'</span>, src:<span class="s">'SHOP'</span>,    name:<span class="s">'T. Mokoena'</span>,     email:<span class="s">'thandi.m@example.com'</span>, phone:null,           device:<span class="s">'DEV-A1'</span>},
+ {id:<span class="s">'SUP-3302'</span>, src:<span class="s">'SUPPORT'</span>, name:<span class="s">'Thandi M'</span>,       email:null,                   phone:<span class="s">'+27825550101'</span>, device:<span class="s">'DEV-A1'</span>},
+ {id:<span class="s">'CRM-002'</span>,  src:<span class="s">'CRM'</span>,     name:<span class="s">'Sipho Dlamini'</span>,  email:<span class="s">'sipho.d@example.com'</span>,  phone:null,           device:null},
+ {id:<span class="s">'WEB-7790'</span>, src:<span class="s">'SHOP'</span>,    name:<span class="s">'Sipho Dlamini'</span>,  email:<span class="s">'sipho.d@example.com'</span>,  phone:null,           device:<span class="s">'DEV-B2'</span>},
+ {id:<span class="s">'SUP-3310'</span>, src:<span class="s">'SUPPORT'</span>, name:<span class="s">'S. Dlamini'</span>,     email:null,                   phone:null,           device:<span class="s">'DEV-B2'</span>},
+ {id:<span class="s">'WEB-8041'</span>, src:<span class="s">'SHOP'</span>,    name:<span class="s">'Lerato Naidoo'</span>,  email:null,                   phone:null,           device:<span class="s">'DEV-C3'</span>},
+ {id:<span class="s">'SUP-3321'</span>, src:<span class="s">'SUPPORT'</span>, name:<span class="s">'Lerato N'</span>,       email:null,                   phone:null,           device:<span class="s">'DEV-C3'</span>},
+ {id:<span class="s">'WEB-8100'</span>, src:<span class="s">'SHOP'</span>,    name:<span class="s">'Ayesha Khan'</span>,    email:<span class="s">'ayesha.k@example.com'</span>, phone:null,           device:null},
+ {id:<span class="s">'WEB-8200'</span>, src:<span class="s">'SHOP'</span>,    name:<span class="s">'Bongani Zulu'</span>,   email:null,                   phone:null,           device:null}
+] <span class="k">AS</span> r
+<span class="k">MERGE</span> (c:<span class="l">Customer</span> {id:r.id}) <span class="k">SET</span> c.source = r.src, c.name = r.name
+FOREACH (_ <span class="k">IN</span> <span class="k">CASE</span> <span class="k">WHEN</span> r.email  <span class="k">IS</span> <span class="k">NULL</span> <span class="k">THEN</span> [] <span class="k">ELSE</span> [1] <span class="k">END</span> |
+  <span class="k">MERGE</span> (e:<span class="l">Email</span>  {address:r.email}) <span class="k">MERGE</span> (c)-[:<span class="r">HAS_EMAIL</span>]-&gt;(e))
+FOREACH (_ <span class="k">IN</span> <span class="k">CASE</span> <span class="k">WHEN</span> r.phone  <span class="k">IS</span> <span class="k">NULL</span> <span class="k">THEN</span> [] <span class="k">ELSE</span> [1] <span class="k">END</span> |
+  <span class="k">MERGE</span> (p:<span class="l">Phone</span>  {number:r.phone})  <span class="k">MERGE</span> (c)-[:<span class="r">HAS_PHONE</span>]-&gt;(p))
+FOREACH (_ <span class="k">IN</span> <span class="k">CASE</span> <span class="k">WHEN</span> r.device <span class="k">IS</span> <span class="k">NULL</span> <span class="k">THEN</span> [] <span class="k">ELSE</span> [1] <span class="k">END</span> |
+  <span class="k">MERGE</span> (d:<span class="l">Device</span> {id:r.device})     <span class="k">MERGE</span> (c)-[:<span class="r">USES_DEVICE</span>]-&gt;(d));
+
+<span class="c">// ---------- 2. The trap: support logged three people with the call-centre line ----------</span>
+<span class="k">MATCH</span> (c:<span class="l">Customer</span>) <span class="k">WHERE</span> c.id <span class="k">IN</span> [<span class="s">'SUP-3302'</span>,<span class="s">'SUP-3310'</span>,<span class="s">'SUP-3321'</span>]
+<span class="k">MERGE</span> (p:<span class="l">Phone</span> {number:<span class="s">'+27860100200'</span>}) <span class="k">SET</span> p.note = <span class="s">'call centre'</span>
+<span class="k">MERGE</span> (c)-[:<span class="r">HAS_PHONE</span>]-&gt;(p);
+
+<span class="c">// ---------- 3. Products and purchases (recorded against source records) ----------</span>
+<span class="k">UNWIND</span> [[<span class="s">'P-100'</span>,<span class="s">'Trail Running Shoes'</span>],[<span class="s">'P-101'</span>,<span class="s">'Hydration Vest'</span>],[<span class="s">'P-102'</span>,<span class="s">'Energy Gels'</span>],
+        [<span class="s">'P-103'</span>,<span class="s">'GPS Watch'</span>],[<span class="s">'P-104'</span>,<span class="s">'Headlamp'</span>],[<span class="s">'P-105'</span>,<span class="s">'Yoga Mat'</span>],[<span class="s">'P-106'</span>,<span class="s">'Water Bottle'</span>]] <span class="k">AS</span> p
+<span class="k">MERGE</span> (:<span class="l">Product</span> {sku:p[0], name:p[1]});
+
+<span class="k">UNWIND</span> [[<span class="s">'WEB-7781'</span>,<span class="s">'P-100'</span>],[<span class="s">'WEB-7781'</span>,<span class="s">'P-102'</span>],
+        [<span class="s">'WEB-7790'</span>,<span class="s">'P-100'</span>],[<span class="s">'WEB-7790'</span>,<span class="s">'P-101'</span>],[<span class="s">'WEB-7790'</span>,<span class="s">'P-104'</span>],
+        [<span class="s">'WEB-8041'</span>,<span class="s">'P-100'</span>],[<span class="s">'WEB-8041'</span>,<span class="s">'P-101'</span>],[<span class="s">'WEB-8041'</span>,<span class="s">'P-103'</span>],
+        [<span class="s">'WEB-8100'</span>,<span class="s">'P-102'</span>],[<span class="s">'WEB-8100'</span>,<span class="s">'P-101'</span>],[<span class="s">'WEB-8100'</span>,<span class="s">'P-105'</span>],
+        [<span class="s">'WEB-8200'</span>,<span class="s">'P-105'</span>],[<span class="s">'WEB-8200'</span>,<span class="s">'P-106'</span>]] <span class="k">AS</span> x
+<span class="k">MATCH</span> (c:<span class="l">Customer</span> {id:x[0]}), (p:<span class="l">Product</span> {sku:x[1]})
+<span class="k">MERGE</span> (c)-[:<span class="r">PURCHASED</span>]-&gt;(p);
+
+<span class="c">// ---------- 4. Order, duplicate payment, refund and support ticket (for the assistant demo) ----------</span>
+<span class="k">MATCH</span> (c:<span class="l">Customer</span> {id:<span class="s">'WEB-7781'</span>}), (s:<span class="l">Product</span> {sku:<span class="s">'P-100'</span>})
+<span class="k">MERGE</span> (o:<span class="l">Order</span> {id:<span class="s">'ORD-551'</span>}) <span class="k">MERGE</span> (c)-[:<span class="r">PLACED</span>]-&gt;(o) <span class="k">MERGE</span> (o)-[:<span class="r">CONTAINS</span>]-&gt;(s)
+<span class="k">MERGE</span> (p1:<span class="l">Payment</span> {id:<span class="s">'PAY-901'</span>}) <span class="k">SET</span> p1.amount = 1899
+<span class="k">MERGE</span> (p2:<span class="l">Payment</span> {id:<span class="s">'PAY-902'</span>}) <span class="k">SET</span> p2.amount = 1899, p2.note = <span class="s">'duplicate'</span>
+<span class="k">MERGE</span> (p1)-[:<span class="r">FOR</span>]-&gt;(o) <span class="k">MERGE</span> (p2)-[:<span class="r">FOR</span>]-&gt;(o)
+<span class="k">MERGE</span> (r:<span class="l">Refund</span> {id:<span class="s">'REF-77'</span>}) <span class="k">SET</span> r.status = <span class="s">'pending'</span>
+<span class="k">MERGE</span> (r)-[:<span class="r">REFUNDS</span>]-&gt;(p2);
+
+<span class="k">MATCH</span> (c:<span class="l">Customer</span> {id:<span class="s">'SUP-3302'</span>}), (o:<span class="l">Order</span> {id:<span class="s">'ORD-551'</span>})
+<span class="k">MERGE</span> (t:<span class="l">Ticket</span> {id:<span class="s">'TCK-1'</span>}) <span class="k">SET</span> t.topic = <span class="s">'Size exchange'</span>, t.status = <span class="s">'shipped'</span>
+<span class="k">MERGE</span> (c)-[:<span class="r">LOGGED</span>]-&gt;(t) <span class="k">MERGE</span> (t)-[:<span class="r">ABOUT</span>]-&gt;(o);
+
+<span class="c">// ---------- 5a. Show the trap (read-only): without a guard, strangers link up ----------</span>
+<span class="k">MATCH</span> (a:<span class="l">Customer</span>)-[:<span class="r">HAS_EMAIL|HAS_PHONE|USES_DEVICE</span>]-&gt;(i)&lt;-[:<span class="r">HAS_EMAIL|HAS_PHONE|USES_DEVICE</span>]-(b:<span class="l">Customer</span>)
+<span class="k">WHERE</span> a.id &lt; b.id
+<span class="k">RETURN</span> a.id, b.id, labels(i)[0] <span class="k">AS</span> via, coalesce(i.address, i.number, i.id) <span class="k">AS</span> value
+<span class="k">ORDER BY</span> via, a.id;
+<span class="c">// Expect pairs like SUP-3302 / SUP-3310 via the call-centre phone. Those are different people.</span>
+
+<span class="c">// ---------- 5b. Deterministic matching with a supernode guard ----------</span>
+<span class="c">// Skip identifiers shared by more than 2 records (the call-centre line has 3).</span>
+<span class="k">MATCH</span> (a:<span class="l">Customer</span>)-[:<span class="r">HAS_EMAIL|HAS_PHONE|USES_DEVICE</span>]-&gt;(i)&lt;-[:<span class="r">HAS_EMAIL|HAS_PHONE|USES_DEVICE</span>]-(b:<span class="l">Customer</span>)
+<span class="k">WHERE</span> a.id &lt; b.id <span class="k">AND</span> <span class="k">COUNT</span> { (i)&lt;--() } &lt;= 2
+<span class="k">WITH</span> a, b, count(<span class="k">DISTINCT</span> i) <span class="k">AS</span> strength
+<span class="k">MERGE</span> (a)-[m:<span class="r">SAME_AS</span>]-&gt;(b) <span class="k">SET</span> m.strength = strength;
+
+<span class="c">// ---------- 6. Golden records (Cypher version; use GDS WCC at scale, block 12) ----------</span>
+<span class="k">MATCH</span> (c:<span class="l">Customer</span>)
+<span class="k">OPTIONAL</span> <span class="k">MATCH</span> (c)-[:<span class="r">SAME_AS</span>]-+(o:<span class="l">Customer</span>)
+<span class="k">WITH</span> c, [c] + collect(<span class="k">DISTINCT</span> o) <span class="k">AS</span> cluster
+<span class="k">WITH</span> c, reduce(k = c.id, x <span class="k">IN</span> cluster | <span class="k">CASE</span> <span class="k">WHEN</span> x.id &lt; k <span class="k">THEN</span> x.id <span class="k">ELSE</span> k <span class="k">END</span>) <span class="k">AS</span> key
+<span class="k">MERGE</span> (p:<span class="l">Person</span> {id:<span class="s">'PER-'</span> + key})
+<span class="k">MERGE</span> (c)-[:<span class="r">RESOLVES_TO</span>]-&gt;(p);
+
+<span class="c">// Survivorship: CRM wins the name, then the shop; keep provenance</span>
+<span class="k">MATCH</span> (p:<span class="l">Person</span>)&lt;-[:<span class="r">RESOLVES_TO</span>]-(c:<span class="l">Customer</span>)
+<span class="k">WITH</span> p, collect(c) <span class="k">AS</span> recs
+<span class="k">SET</span> p.name    = coalesce(head([r <span class="k">IN</span> recs <span class="k">WHERE</span> r.source = <span class="s">'CRM'</span>  | r.name]),
+                         head([r <span class="k">IN</span> recs <span class="k">WHERE</span> r.source = <span class="s">'SHOP'</span> | r.name]), recs[0].name),
+    p.sources = [r <span class="k">IN</span> recs | r.source + <span class="s">':'</span> + r.id];
+
+<span class="k">MATCH</span> (p:<span class="l">Person</span>) <span class="k">RETURN</span> p.id, p.name, p.sources <span class="k">ORDER BY</span> p.id;
+<span class="c">// Expect 5 people from 10 records:</span>
+<span class="c">//   PER-CRM-001 Thandi Mokoena (CRM, SHOP, SUPPORT)   PER-CRM-002 Sipho Dlamini (CRM, SHOP, SUPPORT)</span>
+<span class="c">//   PER-SUP-3321 Lerato Naidoo (SHOP, SUPPORT)        PER-WEB-8100 Ayesha Khan   PER-WEB-8200 Bongani Zulu</span>
+
+<span class="c">// ---------- 7. Consent lives in the graph ----------</span>
+<span class="k">MATCH</span> (p:<span class="l">Person</span> {id:<span class="s">'PER-CRM-001'</span>})
+<span class="k">MERGE</span> (k:<span class="l">Consent</span> {id:<span class="s">'CONSENT-PER-CRM-001'</span>}) <span class="k">SET</span> k.directMarketing = false, k.recorded = date(<span class="s">'2026-03-01'</span>)
+<span class="k">MERGE</span> (p)-[:<span class="r">HAS_CONSENT</span>]-&gt;(k);
+
+<span class="c">// ---------- 8. Customer 360: everything about Thandi, across all three systems ----------</span>
+<span class="k">MATCH</span> (p:<span class="l">Person</span> {id:<span class="s">'PER-CRM-001'</span>})&lt;-[:<span class="r">RESOLVES_TO</span>]-(c:<span class="l">Customer</span>)-[rel:<span class="r">PURCHASED|PLACED|LOGGED</span>]-&gt;(x)
+<span class="k">RETURN</span> p.name, c.source, c.id, type(rel) <span class="k">AS</span> interaction,
+       coalesce(x.name, x.topic, x.id) <span class="k">AS</span> item
+<span class="k">ORDER BY</span> c.source;
+
+<span class="c">// ---------- 9. The assistant's bounded query ("charged twice?") ----------</span>
+<span class="k">MATCH</span> (:<span class="l">Person</span> {id:<span class="s">'PER-CRM-001'</span>})&lt;-[:<span class="r">RESOLVES_TO</span>]-(c)-[:<span class="r">PLACED</span>]-&gt;(o:<span class="l">Order</span>)
+      -[:<span class="r">CONTAINS</span>]-&gt;(:<span class="l">Product</span> {name:<span class="s">'Trail Running Shoes'</span>})
+<span class="k">OPTIONAL</span> <span class="k">MATCH</span> (o)&lt;-[:<span class="r">FOR</span>]-(pay:<span class="l">Payment</span>)
+<span class="k">OPTIONAL</span> <span class="k">MATCH</span> (ref:<span class="l">Refund</span>)-[:<span class="r">REFUNDS</span>]-&gt;(pay)
+<span class="k">OPTIONAL</span> <span class="k">MATCH</span> (t:<span class="l">Ticket</span>)-[:<span class="r">ABOUT</span>]-&gt;(o)
+<span class="k">RETURN</span> o.id, collect(<span class="k">DISTINCT</span> pay.id) <span class="k">AS</span> payments, collect(<span class="k">DISTINCT</span> ref.id + <span class="s">' '</span> + ref.status) <span class="k">AS</span> refunds,
+       collect(<span class="k">DISTINCT</span> t.id + <span class="s">' '</span> + t.status) <span class="k">AS</span> tickets;
+
+<span class="c">// Consent check before any marketing</span>
+<span class="k">MATCH</span> (:<span class="l">Person</span> {id:<span class="s">'PER-CRM-001'</span>})-[:<span class="r">HAS_CONSENT</span>]-&gt;(k:<span class="l">Consent</span>)
+<span class="k">RETURN</span> k.directMarketing <span class="k">AS</span> mayMarket;   <span class="c">// false</span>
+
+<span class="c">// ---------- 10. User-based collaborative filtering, popularity-damped ----------</span>
+<span class="k">MATCH</span> (t:<span class="l">Person</span> {id:<span class="s">'PER-CRM-001'</span>})&lt;-[:<span class="r">RESOLVES_TO</span>]-()-[:<span class="r">PURCHASED</span>]-&gt;(p:<span class="l">Product</span>)
+<span class="k">WITH</span> t, collect(<span class="k">DISTINCT</span> p) <span class="k">AS</span> owned
+<span class="k">UNWIND</span> owned <span class="k">AS</span> p
+<span class="k">MATCH</span> (p)&lt;-[:<span class="r">PURCHASED</span>]-()-[:<span class="r">RESOLVES_TO</span>]-&gt;(peer:<span class="l">Person</span>)
+<span class="k">WHERE</span> peer &lt;&gt; t
+<span class="k">WITH</span> owned, peer, count(<span class="k">DISTINCT</span> p) <span class="k">AS</span> overlap
+<span class="k">MATCH</span> (peer)&lt;-[:<span class="r">RESOLVES_TO</span>]-()-[:<span class="r">PURCHASED</span>]-&gt;(rec:<span class="l">Product</span>)
+<span class="k">WHERE</span> <span class="k">NOT</span> rec <span class="k">IN</span> owned
+<span class="k">WITH</span> rec, sum(overlap) <span class="k">AS</span> score, <span class="k">COUNT</span> { (rec)&lt;-[:<span class="r">PURCHASED</span>]-() } <span class="k">AS</span> pop
+<span class="k">RETURN</span> rec.name, score, pop, round(score / log(2 + pop), 3) <span class="k">AS</span> damped
+<span class="k">ORDER BY</span> damped <span class="k">DESC</span> <span class="k">LIMIT</span> 5;
+<span class="c">// Expect: Hydration Vest 1.864, Headlamp 0.91, GPS Watch 0.91, Yoga Mat 0.721</span>
+
+<span class="c">// ---------- 10b. Experiment: make the water bottle a best-seller, then rerun block 10 ----------</span>
+<span class="k">UNWIND</span> [<span class="s">'WEB-7790'</span>,<span class="s">'WEB-8041'</span>,<span class="s">'WEB-8100'</span>] <span class="k">AS</span> id
+<span class="k">MATCH</span> (c:<span class="l">Customer</span> {id:id}), (b:<span class="l">Product</span> {sku:<span class="s">'P-106'</span>})
+<span class="k">MERGE</span> (c)-[:<span class="r">PURCHASED</span>]-&gt;(b);
+<span class="c">// Rerun block 10: raw score ties Vest and Water Bottle at 3; damped keeps Vest first (1.864 vs 1.674).</span>
+
+<span class="c">// ---------- 11. Item-to-item: "bought X, also bought Y" (Jaccard over people) ----------</span>
+<span class="k">MATCH</span> (x:<span class="l">Product</span> {sku:<span class="s">'P-100'</span>})&lt;-[:<span class="r">PURCHASED</span>]-()-[:<span class="r">RESOLVES_TO</span>]-&gt;(b:<span class="l">Person</span>)
+<span class="k">WITH</span> x, collect(<span class="k">DISTINCT</span> b) <span class="k">AS</span> bx
+<span class="k">MATCH</span> (y:<span class="l">Product</span>)&lt;-[:<span class="r">PURCHASED</span>]-()-[:<span class="r">RESOLVES_TO</span>]-&gt;(b2:<span class="l">Person</span>) <span class="k">WHERE</span> y &lt;&gt; x
+<span class="k">WITH</span> bx, y, collect(<span class="k">DISTINCT</span> b2) <span class="k">AS</span> by
+<span class="k">WITH</span> y, size([b <span class="k">IN</span> by <span class="k">WHERE</span> b <span class="k">IN</span> bx]) <span class="k">AS</span> shared, size(bx) + size(by) <span class="k">AS</span> total
+<span class="k">WHERE</span> shared &gt; 0
+<span class="k">RETURN</span> y.name, round(toFloat(shared) / (total - shared), 3) <span class="k">AS</span> jaccard
+<span class="k">ORDER BY</span> jaccard <span class="k">DESC</span>;
+
+<span class="c">// ---------- 12. (Needs Graph Data Science) WCC identity clusters with the same guard ----------</span>
+<span class="k">MATCH</span> (c:<span class="l">Customer</span>)-[:<span class="r">HAS_EMAIL|HAS_PHONE|USES_DEVICE</span>]-&gt;(i)
+<span class="k">WHERE</span> <span class="k">COUNT</span> { (i)&lt;--() } &lt;= 2
+<span class="k">WITH</span> gds.graph.project(<span class="s">'ids'</span>, c, i, {}, {undirectedRelationshipTypes:[<span class="s">'*'</span>]}) <span class="k">AS</span> g
+<span class="k">RETURN</span> g.nodeCount, g.relationshipCount;
+
+<span class="k">CALL</span> gds.wcc.stream(<span class="s">'ids'</span>) <span class="k">YIELD</span> nodeId, componentId
+<span class="k">WITH</span> gds.util.asNode(nodeId) <span class="k">AS</span> n, componentId <span class="k">WHERE</span> n:Customer
+<span class="k">RETURN</span> componentId, collect(n.id) <span class="k">AS</span> records <span class="k">ORDER BY</span> size(records) <span class="k">DESC</span>;
+
+<span class="k">CALL</span> gds.graph.drop(<span class="s">'ids'</span>);
+<span class="c">// Note: records with no identifiers (WEB-8200) are not in this projection; Cypher block 6 handles them.</span></pre>
+  </details>
+</div>
+
+<script>
+var KEY='graphlab-tab-one-customer-many-records',tabs=[].slice.call(document.querySelectorAll('.tab')),frame=document.getElementById('frame');
+function pick(t){tabs.forEach(function(x){x.setAttribute('aria-selected',x===t?'true':'false')});frame.src=t.dataset.src;try{localStorage.setItem(KEY,t.id)}catch(e){}}
+tabs.forEach(function(t){t.addEventListener('click',function(){pick(t)})});
+try{var saved=localStorage.getItem(KEY);if(saved&&document.getElementById(saved))pick(document.getElementById(saved))}catch(e){}
+var h=parseInt(location.hash.slice(1),10);if(h>=1&&h<=tabs.length)pick(tabs[h-1]);
+document.getElementById('copy').addEventListener('click',function(){var b=this,txt=document.getElementById('script').innerText;
+var done=function(){b.textContent='Copied';setTimeout(function(){b.textContent='Copy script'},1800)};
+var fallback=function(){var r=document.createRange();r.selectNodeContents(document.getElementById('script'));var s=getSelection();s.removeAllRanges();s.addRange(r);b.textContent='Selected: press Ctrl+C'};
+if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(done,fallback)}else fallback()});
+</script>
+
+</body>
+</html>

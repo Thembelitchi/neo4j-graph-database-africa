@@ -1,0 +1,112 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Shared Identifiers</title><meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+html,body{margin:0;height:100%;background:#0B1426;color-scheme:dark;overflow:hidden;font-family:"Public Sans","Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:#EEF2F8}
+#st{position:absolute;left:0;top:0;width:1600px;height:640px;transform-origin:0 0;display:flex;gap:24px}
+.cap{flex:0 0 560px;box-sizing:border-box;background:#0E1A2F;border:1px solid #24365A;border-radius:18px;padding:26px 30px;display:flex;flex-direction:column;gap:14px}
+.chip{align-self:flex-start;font:600 20px/1 "Fira Code",Consolas,Menlo,monospace;letter-spacing:2px;color:#0B1426;background:#5EEAD4;border-radius:999px;padding:8px 14px}
+.chip.bad{background:#F16667}
+#t{font-size:29px;font-weight:700;line-height:1.2}
+#x{font-size:21px;line-height:1.45;color:#BFCBDD}
+#s{font-size:34px;font-weight:800;color:#5EEAD4;line-height:1.15}
+#s.bad{color:#F16667}
+#c{font:400 17px/1.5 "Fira Code",Consolas,Menlo,monospace;color:#EEF2F8;background:#0B1426;border:1px solid #1E2F50;border-radius:10px;padding:10px 14px;white-space:pre}
+#c:empty{display:none}
+table{border-collapse:collapse;font-size:18px;width:100%}
+th{font:500 14px "Fira Code",Consolas,monospace;color:#A9B4C8;text-align:left;padding:3px 6px;border-bottom:1px solid #24365A}
+td{padding:4px 6px;border-bottom:1px solid #1B2A47;font-variant-numeric:tabular-nums}
+td.n{text-align:right;font-family:"Fira Code",Consolas,monospace}
+tr.top td{color:#F16667;font-weight:700}
+.lg{margin-top:auto;display:flex;flex-wrap:wrap;gap:6px 16px;font-size:16px;color:#A9B4C8}
+.lg i{display:inline-block;width:13px;height:13px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+.fade{transition:opacity .3s}.out{opacity:0}
+.gp{flex:1;position:relative;border-radius:18px;border:1px solid #1B2A47;background:radial-gradient(circle at 50% 45%,#13264A 0%,#0B1426 72%)}
+.gp svg{position:absolute;left:0;top:0;width:100%;height:100%}
+.e path{stroke:#56637A;stroke-width:2.5;fill:none;transition:stroke .3s}
+.e rect{fill:#0E1A2F;stroke:#2E4470}
+.e text{fill:#F79767;font-size:12px;font-family:"Fira Code",Consolas,monospace}
+.e text.sub{fill:#A9B4C8;font-size:11px}
+.e.hot path{stroke:#F16667;stroke-width:4}
+.e.hot rect{stroke:#F16667}
+.e.hl path{stroke:#5EEAD4;stroke-width:4}
+.e.hl rect{stroke:#5EEAD4}
+.e.amb path{stroke:#FFC454;stroke-width:4}
+.e.amb rect{stroke:#FFC454}
+.e,.n{transition:opacity .35s}
+.dim{opacity:.18}
+.hide{display:none}
+.n circle.b{stroke:rgba(0,0,0,.35);stroke-width:2;transition:stroke .3s}
+.n text{font-size:13px;font-weight:700;fill:#0B1426}
+.n.hot circle.b{stroke:#F16667;stroke-width:6}
+.n.hl circle.b{stroke:#5EEAD4;stroke-width:6}
+.n.amb circle.b{stroke:#FFC454;stroke-width:6}
+.bd{display:none}.bd.on{display:inline}
+.bd circle{fill:#F16667;stroke:#0B1426;stroke-width:2}.bd.ok circle{fill:#5EEAD4}
+.bd text{font-size:14px;font-weight:800;fill:#0B1426}
+.tg{display:none}.tg.on{display:inline}
+.tg rect{fill:#0B1426;stroke:#5EEAD4;stroke-width:1.5}.tg text{fill:#5EEAD4;font-size:13px;font-weight:700;font-family:"Fira Code",Consolas,monospace}
+.tg.bad rect{stroke:#F16667}.tg.bad text{fill:#F16667}
+</style></head>
+<body><div id="st"><div class="cap"><span class="chip" id="chip">STEP 1</span><div id="t" class="fade"></div><div id="x" class="fade"></div><div id="s" class="fade"></div><div id="c" class="fade"></div><div id="z" class="fade"></div><div class="lg"><span><i style="background:#4C8EDA"></i>Customer</span><span><i style="background:#8DCC93"></i>Restaurant</span><span><i style="background:#C990C0"></i>Courier</span><span><i style="background:#FFC454"></i>Device</span></div></div>
+<div class="gp"><svg id="sv" viewBox="0 0 1016 640" preserveAspectRatio="xMidYMid meet"><defs><marker id="a0" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10z" fill="#56637A"/></marker><marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0 0L10 5L0 10z" fill="#F16667"/></marker><marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0 0L10 5L0 10z" fill="#5EEAD4"/></marker><marker id="a3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0 0L10 5L0 10z" fill="#FFC454"/></marker></defs><g id="E"></g><g id="N"></g></svg></div></div>
+<script>
+var N={'U1':[240,80,'#4C8EDA','user-1'],'U2':[240,215,'#4C8EDA','user-2'],'U3':[240,350,'#4C8EDA','user-3'],'U4':[240,485,'#4C8EDA','user-4'],
+'RA':[470,285,'#8DCC93','Rest. A'],'C1':[470,590,'#C990C0','courier-1'],'D1':[60,285,'#FFC454','phone-1'],
+'L3':[600,80,'#4C8EDA','user-7'],'RB':[790,110,'#8DCC93','Rest. B'],'RC':[930,330,'#8DCC93','Rest. C'],'L1':[740,330,'#4C8EDA','user-5'],'L2':[900,560,'#4C8EDA','user-6'],'D2':[700,560,'#FFC454','tablet-2'],'C2':[965,45,'#C990C0','courier-2']};
+var O='ORDERED',U='USES_DEVICE';
+var E=[['U1','RA',O,'9 orders',.45],['U2','RA',O,'11 orders',.45],['U3','RA',O,'8 orders',.45],['U4','RA',O,'9 orders',.45],['C1','RA','DELIVERS_FOR','',.5],
+['L3','RA',O,'1 order',.5],['L3','RB',O,'2 orders'],['L1','RB',O,'3 orders',.55],['L1','RC',O,'2 orders'],['L2','RC',O,'4 orders',.5],['C2','RB','DELIVERS_FOR','',.5],['C2','RC','DELIVERS_FOR','',.5],
+['U1','D1',U,'',.5,0,1],['U2','D1',U,'',.5,0,1],['U3','D1',U,'',.5,0,1],['U4','D1',U,'',.5,0,1],['C1','D1',U,'',.3,0,1],['L1','D2',U,'',.5,0,1],['L2','D2',U,'',.5,0,1]];
+var RINGC=['U1','U2','U3','U4','RA','C1','D1'],FAM=['L1','L2','L3','RB','RC','C2','D2'];
+var NS='http://www.w3.org/2000/svg',R=32;
+function mk(t,a,p){var e=document.createElementNS(NS,t);for(var k in a)e.setAttribute(k,a[k]);p.appendChild(e);return e}
+var NE={},EE={},EG=document.getElementById('E'),NG=document.getElementById('N');
+function ek(e){return e[0]+'>'+e[1]}
+function addEdge(e){var a=N[e[0]],b=N[e[1]],mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2,dx=b[0]-a[0],dy=b[1]-a[1],L=Math.sqrt(dx*dx+dy*dy),cv=e[5]||0,
+cx=mx-dy/L*cv,cy=my+dx/L*cv;function bp(n,tx,ty){var ux=tx-n[0],uy=ty-n[1],l=Math.sqrt(ux*ux+uy*uy);return [n[0]+ux/l*(R+3),n[1]+uy/l*(R+3)]}
+var p=bp(a,cx,cy),q=bp(b,cx,cy),g=mk('g',{'class':'e'},EG);g.l=mk('path',{d:'M'+p[0]+' '+p[1]+' Q'+cx+' '+cy+' '+q[0]+' '+q[1],'marker-end':'url(#a0)'},g);
+var t=e[4]||.5,lx=(1-t)*(1-t)*p[0]+2*(1-t)*t*cx+t*t*q[0],ly=(1-t)*(1-t)*p[1]+2*(1-t)*t*cy+t*t*q[1],s=e[3]||'',w=Math.max(e[2].length*7.4,s.length*6.8)+16,h=s?34:22;
+mk('rect',{x:lx-w/2,y:ly-h/2,width:w,height:h,rx:11},g);var t1=mk('text',{x:lx,y:ly+(s?-2:4),'text-anchor':'middle'},g);t1.textContent=e[2];
+if(s){var t2=mk('text',{x:lx,y:ly+12,'text-anchor':'middle','class':'sub'},g);t2.textContent=s}
+EE[ek(e)]=g;if(e[6])g.classList.add('hide');return g}
+E.forEach(addEdge);
+for(var k in N){var d=N[k],g=mk('g',{'class':'n'},NG);mk('circle',{'class':'b',cx:d[0],cy:d[1],r:R,fill:d[2]},g);
+var tx=mk('text',{x:d[0],y:d[1]+5,'text-anchor':'middle'},g);tx.textContent=d[3]||k;
+var b=mk('g',{'class':'bd'},g);mk('circle',{cx:d[0]+R-4,cy:d[1]-R+4,r:13},b);g.bt=mk('text',{x:d[0]+R-4,y:d[1]-R+9,'text-anchor':'middle'},b);g.b=b;
+var tg=mk('g',{'class':'tg'},g);g.tr=mk('rect',{x:d[0]-50,y:d[1]+R+5,width:100,height:22,rx:11},tg);g.tt=mk('text',{x:d[0],y:d[1]+R+21,'text-anchor':'middle'},tg);g.tg=tg;
+NE[k]=g;if(d[4])g.classList.add('hide')}
+function reset(){for(var k in NE){var g=NE[k];g.classList.remove('hot','hl','amb','dim');g.b.classList.remove('on','ok');g.tg.classList.remove('on','bad')}
+for(var k in EE){var e=EE[k];e.classList.remove('hot','hl','amb','dim');e.l.setAttribute('marker-end','url(#a0)')}}
+function show(k,v){var o=EE[k]||NE[k];o.classList.toggle('hide',!v)}
+function badge(n,txt,ok){var g=NE[n];g.bt.textContent=txt;g.b.classList.add('on');g.b.classList.toggle('ok',!!ok)}
+function tag(n,txt,bad){var g=NE[n],w=txt.length*8+16,x=N[n][0];g.tt.textContent=txt;g.tr.setAttribute('width',w);g.tr.setAttribute('x',x-w/2);g.tg.classList.add('on');g.tg.classList.toggle('bad',!!bad)}
+var MK={hot:'url(#a1)',hl:'url(#a2)',amb:'url(#a3)'};
+function ec(k,c){var e=EE[k];if(!e)return;e.classList.add(c);e.l.setAttribute('marker-end',MK[c])}
+function nc(n,c){NE[n].classList.add(c)}
+function dimAll(keep){for(var k in NE)if(!keep[k])NE[k].classList.add('dim');for(var k in EE){var p=k.split('>');if(!(keep[p[0]]&&keep[p[1]]))EE[k].classList.add('dim')}}
+function cap(q,k,n){var ch=document.getElementById('chip');ch.textContent='STEP '+(k+1)+' / '+n;ch.classList.toggle('bad',!!q.bad);
+['t','x','s','c'].forEach(function(id,i){document.getElementById(id).textContent=[q.t,q.x,q.s||'',q.c||''][i]});document.getElementById('s').classList.toggle('bad',!!q.bad);document.getElementById('z').textContent=''}
+function setS(v){document.getElementById('s').textContent=v}
+var cur=-1,gen=0,manual=false,idle=null;
+function later(f,ms){var my=gen;setTimeout(function(){if(my===gen)f()},ms)}
+function go(k){gen++;cur=k;var q=S[k],els=['t','x','s','c','z'].map(function(i){return document.getElementById(i)});els.forEach(function(e){e.classList.add('out')});
+later(function(){cap(q,k,S.length);reset();q.run();els.forEach(function(e){e.classList.remove('out')});if(!manual)later(function(){go((k+1)%S.length)},q.d||6500)},300)}
+function poke(k){manual=true;clearTimeout(idle);go((k+S.length)%S.length);idle=setTimeout(function(){manual=false;go((cur+1)%S.length)},30000)}
+document.addEventListener('click',function(){poke(cur+1)});
+document.addEventListener('keydown',function(e){if(e.key==='ArrowRight'||e.key===' ')poke(cur+1);if(e.key==='ArrowLeft')poke(cur-1)});
+var st=document.getElementById('st');function fit(){var s=Math.min(innerWidth/1600,innerHeight/640);st.style.transform='translate('+(innerWidth-1600*s)/2+'px,'+(innerHeight-640*s)/2+'px) scale('+s+')'}
+addEventListener('resize',fit);fit();
+function mkTable(head,rows,topIdx){var z=document.getElementById('z'),tb=document.createElement('table'),h=tb.insertRow();head.forEach(function(s,i){var th=document.createElement('th');th.textContent=s;if(i)th.style.textAlign='right';h.appendChild(th)});
+rows.forEach(function(r,i){var tr=tb.insertRow();if(topIdx.indexOf(i)>=0)tr.className='top';r.forEach(function(v,j){var td=tr.insertCell();td.textContent=v;if(j)td.className='n'})});z.appendChild(tb)}
+function ids(v){E.forEach(function(e){if(e[2]===U)show(ek(e),v)});show('D1',v);show('D2',v)}
+var S=[
+{t:'Orders, one row at a time',x:'Seven customers, three restaurants, two couriers. No single account orders often enough to trip a rule.',s:'49 orders · 0 alerts',c:'// per-account rules: orders/day, refunds,\n// promo use: all within limits',run:function(){ids(false)},d:6500},
+{t:'Make identifiers into nodes',x:'Add the phones and tablets each account logs in from. Four "customers" and the courier who delivers their orders all use the same phone.',s:'1 phone · 4 customers + 1 courier',c:"MATCH (a)-[:USES_DEVICE]->(d:Device)\n      <-[:USES_DEVICE]-(b)\nWHERE a <> b\nRETURN d, collect(DISTINCT a)",run:function(){ids(true);E.forEach(function(e){if(e[2]===U&&e[1]==='D1')ec(ek(e),'amb')});nc('D1','amb');['U1','U2','U3','U4','C1'].forEach(function(n){nc(n,'amb')})},d:7500},
+{t:'Find the dense community',x:'Community detection groups nodes that connect far more to each other than to everyone else. One group is tight: few people, one phone, one restaurant.',s:'2 communities',c:"CALL gds.louvain.stream('orders')\nYIELD nodeId, communityId",run:function(){ids(true);RINGC.forEach(function(n){nc(n,'hot')});FAM.forEach(function(n){nc(n,'hl')});
+E.forEach(function(e){if(RINGC.indexOf(e[0])>=0&&RINGC.indexOf(e[1])>=0)ec(ek(e),'hot');else if(FAM.indexOf(e[0])>=0&&FAM.indexOf(e[1])>=0)ec(ek(e),'hl')})},d:7500},
+{t:'Score each community',x:'Score the pattern, not one link: share of accounts on one device, and share of orders going to one restaurant. Only one community scores high on both.',s:'1 community flagged for review',bad:1,c:'',run:function(){ids(true);RINGC.forEach(function(n){nc(n,'hot')});
+mkTable(['community','accounts','on one device','to top restaurant'],[['ring',5,'5 of 5','37 of 37'],['others',4,'2 of 4','6 of 12']],[0])},d:8500},
+{t:'A shared device is not proof',x:'Two people on one tablet, ordering from different restaurants, is a household. Flags go to a human investigator, who makes the decision.',s:'',c:'// graph finds the pattern;\n// a person decides',run:function(){ids(true);['L1','L2','D2'].forEach(function(n){nc(n,'hl')});ec('L1>D2','hl');ec('L2>D2','hl');ec('L1>RB','hl');ec('L1>RC','hl');ec('L2>RC','hl');setS('Household: not flagged')},d:7500}];
+
+go(0);
+</script></body></html>

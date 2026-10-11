@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Live Neo4j demos from When One Thing Breaks, a guest lecture by Thembelihle Gumede.">
+<title>Graph Lab · When One Thing Breaks</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@700&family=Public+Sans:wght@400;500;600&family=Fira+Code:wght@400;500&display=swap">
+<style>
+html{margin:0}body{margin:0}*,*::before,*::after{box-sizing:border-box}
+/* Layout: one presenter console. Header, three tabs, a 1600x640 live stage, then the demo script. Single dark look to match the deck. */
+:root{
+  --bg:#0B1426; --panel:#12203A; --line:#24365A; --fg:#EEF2F8; --muted:#A9B4C8;
+  --mint:#5EEAD4; --blue:#4FB3FF; --amber:#F79767; --pink:#E58AA9;
+  --display:'Syne','Public Sans',Arial,sans-serif; --body:'Public Sans','Segoe UI',Arial,sans-serif; --mono:'Fira Code',Consolas,Menlo,monospace;
+  color-scheme:dark;
+}
+html,body{background:var(--bg);color:var(--fg)}
+body{font-family:var(--body);font-size:16px;line-height:1.5;padding-inline:clamp(16px,4vw,48px);padding-block:28px 48px}
+.wrap{max-width:1280px;margin-inline:auto;display:flex;flex-direction:column;gap:22px}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 24px}
+.eyebrow{font:500 12px/1 var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--mint)}
+h1{font:700 clamp(30px,5vw,48px)/1.05 var(--display);margin:8px 0 6px;text-wrap:balance}
+.sub{color:var(--muted);max-width:62ch;margin:0}
+.tabs{display:flex;flex-wrap:wrap;gap:8px}
+.tab{font:500 14px var(--body);color:var(--muted);background:transparent;border:1px solid var(--line);border-radius:999px;padding:9px 16px;cursor:pointer}
+.tab:hover{color:var(--fg);border-color:#3A527F}
+.tab[aria-selected="true"]{color:var(--bg);background:var(--mint);border-color:var(--mint);font-weight:600}
+.tab:focus-visible,button:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.stage{position:relative;width:100%;max-width:100%;aspect-ratio:1600/640;background:var(--bg);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.stage iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.keys{display:flex;flex-wrap:wrap;gap:8px 20px;color:var(--muted);font-size:14px}
+kbd{font:500 12px var(--mono);color:var(--fg);background:var(--panel);border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:1px 6px}
+.note{color:var(--muted);font-size:14px;margin:0}
+details{background:var(--panel);border:1px solid var(--line);border-radius:12px}
+summary{cursor:pointer;padding:14px 18px;font-weight:600;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:12px}
+summary::-webkit-details-marker{display:none}
+summary span{font:400 13px var(--mono);color:var(--muted)}
+.code-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:0 18px 10px;flex-wrap:wrap}
+.copy{font:600 13px var(--body);color:var(--bg);background:var(--blue);border:0;border-radius:8px;padding:8px 14px;cursor:pointer}
+pre{margin:0;padding:16px 18px 20px;overflow-x:auto;font:400 13.5px/1.6 var(--mono);color:var(--fg);border-top:1px solid var(--line);tab-size:2}
+.k{color:var(--blue)}.l{color:var(--pink)}.r{color:var(--amber)}.s{color:var(--mint)}.c{color:#7F8BA3}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <div class="eyebrow"><a href="../../" style="color:inherit;text-decoration:none">Graph Database Africa</a> · When One Thing Breaks · live demos</div>
+      <h1>Graph Lab</h1>
+      <p class="sub">The three live demos from <em>When One Thing Breaks</em>, with you in control. They play on their own; click or use the arrow keys to take over.</p>
+    </div>
+    <div class="tabs" role="tablist" aria-label="Demos">
+      <button class="tab" role="tab" id="t-0" aria-selected="true" data-src="widgets/blast-radius.html">Blast radius</button>
+      <button class="tab" role="tab" id="t-1" aria-selected="false" data-src="widgets/criticality.html">Criticality audit</button>
+      <button class="tab" role="tab" id="t-2" aria-selected="false" data-src="widgets/deploy-order.html">Deploy order</button>
+    </div>
+  </header>
+
+  <div class="stage"><iframe id="frame" src="widgets/blast-radius.html" title="Live demo"></iframe></div>
+
+  <div class="keys">
+    <span><kbd>click</kbd> or <kbd>→</kbd> next step</span>
+    <span><kbd>←</kbd> previous</span>
+    <span>Autoplay resumes after 30 seconds idle</span>
+  </div>
+  <p class="note">Click inside the demo once so it receives your arrow keys. The platform in the demos is fictional.</p>
+
+  <details>
+    <summary>Run the demo yourself in Neo4j <span>Cypher · Aura Free</span></summary>
+    <div class="code-head"><p class="note">Paste into the Aura query editor one block at a time. Expected results are in the comments. <a href="sre-dependency-demo.cypher" download style="color:var(--blue)">Download .cypher</a></p><button class="copy" id="copy" type="button">Copy script</button></div>
+<pre id="script"><span class="c">// =====================================================================</span>
+<span class="c">// When One Thing Breaks: dependency graphs for SRE</span>
+<span class="c">// Runnable demo script for Neo4j 5 / Aura Free (Cypher 5).</span>
+<span class="c">// A fictional online shop: 15 components, 21 relationships.</span>
+<span class="c">// Convention: (a)-[:DEPENDS_ON]-&gt;(b) means "a needs b".</span>
+<span class="c">// Run each block separately in Neo4j Browser or the Aura query tool.</span>
+<span class="c">// =====================================================================</span>
+
+<span class="c">// ---------------------------------------------------------------------</span>
+<span class="c">// 0. Reset (only on a scratch database!)</span>
+<span class="c">// ---------------------------------------------------------------------</span>
+<span class="k">MATCH</span> (n) <span class="k">DETACH</span> <span class="k">DELETE</span> n;
+
+<span class="k">CREATE</span> <span class="k">CONSTRAINT</span> component_name <span class="k">IF</span> <span class="k">NOT</span> <span class="k">EXISTS</span>
+<span class="k">FOR</span> (c:<span class="l">Component</span>) <span class="k">REQUIRE</span> c.name <span class="k">IS</span> <span class="k">UNIQUE</span>;
+
+<span class="c">// ---------------------------------------------------------------------</span>
+<span class="c">// 1. Components</span>
+<span class="c">//    type: svc | data | queue | server | net</span>
+<span class="c">// ---------------------------------------------------------------------</span>
+<span class="k">UNWIND</span> [
+  {name:<span class="s">'web-frontend'</span>,   type:<span class="s">'svc'</span>,    team:<span class="s">'web'</span>},
+  {name:<span class="s">'mobile-bff'</span>,     type:<span class="s">'svc'</span>,    team:<span class="s">'mobile'</span>},
+  {name:<span class="s">'checkout'</span>,       type:<span class="s">'svc'</span>,    team:<span class="s">'commerce'</span>},
+  {name:<span class="s">'auth'</span>,           type:<span class="s">'svc'</span>,    team:<span class="s">'identity'</span>},
+  {name:<span class="s">'catalog'</span>,        type:<span class="s">'svc'</span>,    team:<span class="s">'catalog'</span>},
+  {name:<span class="s">'recs'</span>,           type:<span class="s">'svc'</span>,    team:<span class="s">'catalog'</span>},
+  {name:<span class="s">'payments'</span>,       type:<span class="s">'svc'</span>,    team:<span class="s">'commerce'</span>},
+  {name:<span class="s">'orders-db'</span>,      type:<span class="s">'data'</span>,   team:<span class="s">'platform'</span>},
+  {name:<span class="s">'session-cache'</span>,  type:<span class="s">'data'</span>,   team:<span class="s">'platform'</span>},
+  {name:<span class="s">'catalog-db'</span>,     type:<span class="s">'data'</span>,   team:<span class="s">'platform'</span>},
+  {name:<span class="s">'event-bus'</span>,      type:<span class="s">'queue'</span>,  team:<span class="s">'platform'</span>},
+  {name:<span class="s">'node-a'</span>,         type:<span class="s">'server'</span>, team:<span class="s">'infra'</span>},
+  {name:<span class="s">'node-b'</span>,         type:<span class="s">'server'</span>, team:<span class="s">'infra'</span>},
+  {name:<span class="s">'edge-router-04'</span>, type:<span class="s">'net'</span>,    team:<span class="s">'network'</span>, pool:<span class="s">'edge'</span>},
+  {name:<span class="s">'dns-internal'</span>,   type:<span class="s">'net'</span>,    team:<span class="s">'network'</span>}
+] <span class="k">AS</span> row
+<span class="k">MERGE</span> (c:<span class="l">Component</span> {name: row.name})
+<span class="k">SET</span> c.type = row.type, c.team = row.team, c.pool = row.pool;
+
+<span class="c">// ---------------------------------------------------------------------</span>
+<span class="c">// 2. Relationships: DEPENDS_ON (needs) and HOSTED_ON (runs on)</span>
+<span class="c">// ---------------------------------------------------------------------</span>
+<span class="k">UNWIND</span> [
+  [<span class="s">'web-frontend'</span>,<span class="s">'checkout'</span>], [<span class="s">'web-frontend'</span>,<span class="s">'auth'</span>], [<span class="s">'web-frontend'</span>,<span class="s">'catalog'</span>],
+  [<span class="s">'mobile-bff'</span>,<span class="s">'auth'</span>],       [<span class="s">'mobile-bff'</span>,<span class="s">'recs'</span>],
+  [<span class="s">'checkout'</span>,<span class="s">'auth'</span>],         [<span class="s">'checkout'</span>,<span class="s">'payments'</span>], [<span class="s">'checkout'</span>,<span class="s">'orders-db'</span>],
+  [<span class="s">'catalog'</span>,<span class="s">'auth'</span>],          [<span class="s">'catalog'</span>,<span class="s">'catalog-db'</span>],
+  [<span class="s">'recs'</span>,<span class="s">'catalog'</span>],          [<span class="s">'auth'</span>,<span class="s">'session-cache'</span>], [<span class="s">'payments'</span>,<span class="s">'event-bus'</span>],
+  [<span class="s">'node-a'</span>,<span class="s">'edge-router-04'</span>], [<span class="s">'node-a'</span>,<span class="s">'dns-internal'</span>],
+  [<span class="s">'node-b'</span>,<span class="s">'edge-router-04'</span>], [<span class="s">'node-b'</span>,<span class="s">'dns-internal'</span>]
+] <span class="k">AS</span> e
+<span class="k">MATCH</span> (a:<span class="l">Component</span> {name: e[0]}), (b:<span class="l">Component</span> {name: e[1]})
+<span class="k">MERGE</span> (a)-[:<span class="r">DEPENDS_ON</span>]-&gt;(b);
+
+<span class="k">UNWIND</span> [
+  [<span class="s">'orders-db'</span>,<span class="s">'node-a'</span>], [<span class="s">'session-cache'</span>,<span class="s">'node-b'</span>],
+  [<span class="s">'catalog-db'</span>,<span class="s">'node-b'</span>], [<span class="s">'event-bus'</span>,<span class="s">'node-a'</span>]
+] <span class="k">AS</span> e
+<span class="k">MATCH</span> (a:<span class="l">Component</span> {name: e[0]}), (b:<span class="l">Component</span> {name: e[1]})
+<span class="k">MERGE</span> (a)-[:<span class="r">HOSTED_ON</span>]-&gt;(b);
+
+<span class="c">// Check: expect 17 DEPENDS_ON + 4 HOSTED_ON = 21</span>
+<span class="k">MATCH</span> ()-[r]-&gt;() <span class="k">RETURN</span> type(r) <span class="k">AS</span> type, count(*) <span class="k">AS</span> n;
+
+<span class="c">// Look at it:</span>
+<span class="k">MATCH</span> p = ()-[:<span class="r">DEPENDS_ON|HOSTED_ON</span>]-&gt;() <span class="k">RETURN</span> p;
+
+<span class="c">// ---------------------------------------------------------------------</span>
+<span class="c">// 3. BLAST RADIUS: walk AGAINST the arrows from the failed component</span>
+<span class="c">//    Expect 13 rows: node-a, node-b at 1 hop ... web-frontend at 4.</span>
+<span class="c">// ---------------------------------------------------------------------</span>
+<span class="k">MATCH</span> (down:<span class="l">Component</span> {name:<span class="s">'edge-router-04'</span>})
+<span class="k">MATCH</span> p = (hit:<span class="l">Component</span>)-[:<span class="r">DEPENDS_ON|HOSTED_ON</span>]-&gt;{1,8}(down)
+<span class="k">RETURN</span> hit.name <span class="k">AS</span> affected, hit.team <span class="k">AS</span> team, min(length(p)) <span class="k">AS</span> hops
+<span class="k">ORDER BY</span> hops, affected;
+
+<span class="c">// ---------------------------------------------------------------------</span>
+<span class="c">// 4. ROOT CAUSE: walk WITH the arrows from the symptom</span>
+<span class="c">//    Expect 9 suspects: auth, orders-db, payments at 1 hop ...</span>
+<span class="c">// ---------------------------------------------------------------------</span>
+<span class="k">MATCH</span> p = (:<span class="l">Component</span> {name:<span class="s">'checkout'</span>})-[:<span class="r">DEPENDS_ON|HOSTED_ON</span>]-&gt;{1,8}(s:<span class="l">Component</span>)
+<span class="k">RETURN</span> s.name <span class="k">AS</span> suspect, s.type <span class="k">AS</span> type, min(length(p)) <span class="k">AS</span> hops
+<span class="k">ORDER BY</span> hops, suspect;
+
+<span class="c">// ---------------------------------------------------------------------</span>
+<span class="c">// 5. CRITICALITY AUDIT: direct vs transitive dependents</span>
+<span class="c">//    Expect auth: 4 direct / 5 transitive;</span>
+<span class="c">//           edge-router-04 and dns-internal: 2 direct / 13 transitive.</span>
+<span class="c">// ---------------------------------------------------------------------</span>
+<span class="k">MATCH</span> (c:<span class="l">Component</span>)
+<span class="k">RETURN</span> c.name <span class="k">AS</span> component,
+       <span class="k">COUNT</span> { (c)&lt;-[:<span class="r">DEPENDS_ON|HOSTED_ON</span>]-() } <span class="k">AS</span> direct,
+       size(<span class="k">COLLECT</span> {
+         <span class="k">MATCH</span> (x)-[:<span class="r">DEPENDS_ON|HOSTED_ON</span>]-&gt;{1,8}(c) <span class="k">RETURN</span> <span class="k">DISTINCT</span> x
+       }) <span class="k">AS</span> transitive
+<span class="k">ORDER BY</span> transitive <span class="k">DESC</span>, direct <span class="k">DESC</span>;
+
+<span class="c">// ---------------------------------------------------------------------</span>
+<span class="c">// 6. STARTUP / DEPLOY WAVES (pure Cypher, no GDS needed)</span>
+<span class="c">//    Wave = 1 + longest path to something with no dependencies.</span>
+<span class="c">//    Expect 7 waves; mobile-bff starts last.</span>
+<span class="c">// ---------------------------------------------------------------------</span>
+<span class="k">MATCH</span> (c:<span class="l">Component</span>)
+<span class="k">OPTIONAL</span> <span class="k">MATCH</span> p = (c)-[:<span class="r">DEPENDS_ON|HOSTED_ON</span>]-&gt;+(leaf)
+<span class="k">WHERE</span> <span class="k">NOT</span> (leaf)-[:<span class="r">DEPENDS_ON|HOSTED_ON</span>]-&gt;()
+<span class="k">WITH</span> c, coalesce(max(length(p)), 0) + 1 <span class="k">AS</span> wave
+<span class="k">RETURN</span> wave, collect(c.name) <span class="k">AS</span> start_together
+<span class="k">ORDER BY</span> wave;
+
+<span class="c">// ---------------------------------------------------------------------</span>
+<span class="c">// 7. ADD REDUNDANCY: a second router in the same pool</span>
+<span class="c">// ---------------------------------------------------------------------</span>
+<span class="k">MERGE</span> (r:<span class="l">Component</span> {name:<span class="s">'edge-router-05'</span>})
+<span class="k">SET</span> r.type = <span class="s">'net'</span>, r.team = <span class="s">'network'</span>, r.pool = <span class="s">'edge'</span>
+<span class="k">WITH</span> r
+<span class="k">MATCH</span> (s:<span class="l">Component</span> {type:<span class="s">'server'</span>})
+<span class="k">MERGE</span> (s)-[:<span class="r">DEPENDS_ON</span>]-&gt;(r);
+
+<span class="c">// The plain walk in step 3 still says 13 affected, because it treats</span>
+<span class="c">// every dependency as "needs all of these". Ask the better question:</span>
+<span class="c">// which servers lose EVERY member of a pool when router-04 fails?</span>
+<span class="k">MATCH</span> (s:<span class="l">Component</span> {type:<span class="s">'server'</span>})-[:<span class="r">DEPENDS_ON</span>]-&gt;(r:<span class="l">Component</span>)
+<span class="k">WHERE</span> r.pool <span class="k">IS</span> <span class="k">NOT</span> <span class="k">NULL</span>
+<span class="k">WITH</span> s, r.pool <span class="k">AS</span> pool, collect(r.name) <span class="k">AS</span> members
+<span class="k">WHERE</span> all(m <span class="k">IN</span> members <span class="k">WHERE</span> m = <span class="s">'edge-router-04'</span>)
+<span class="k">RETURN</span> s.name <span class="k">AS</span> server_without_backup, pool;
+<span class="c">// Expect: no rows. Delete router-05 again to see node-a and node-b return:</span>
+<span class="c">// MATCH (r:Component {name:'edge-router-05'}) DETACH DELETE r;</span>
+
+<span class="c">// ---------------------------------------------------------------------</span>
+<span class="c">// 8. BREAK IT: add a synchronous callback (creates a cycle)</span>
+<span class="c">// ---------------------------------------------------------------------</span>
+<span class="k">MATCH</span> (p:<span class="l">Component</span> {name:<span class="s">'payments'</span>}), (c:<span class="l">Component</span> {name:<span class="s">'checkout'</span>})
+<span class="k">MERGE</span> (p)-[:<span class="r">DEPENDS_ON</span> {mode:<span class="s">'sync-callback'</span>}]-&gt;(c);
+
+<span class="c">// Cycle check: run this in CI on every change to the dependency graph.</span>
+<span class="k">MATCH</span> p = (a:<span class="l">Component</span>)-[:<span class="r">DEPENDS_ON|HOSTED_ON</span>]-&gt;{1,8}(a)
+<span class="k">RETURN</span> [n <span class="k">IN</span> nodes(p) | n.name] <span class="k">AS</span> cycle
+<span class="k">LIMIT</span> 5;
+<span class="c">// Expect: checkout -&gt; payments -&gt; checkout (and the rotation starting at payments).</span>
+
+<span class="c">// Who can never start while the cycle exists? Anything on a cycle,</span>
+<span class="c">// plus anything that (transitively) needs something on a cycle.</span>
+<span class="k">MATCH</span> (a:<span class="l">Component</span>) <span class="k">WHERE</span> (a)-[:<span class="r">DEPENDS_ON|HOSTED_ON</span>]-&gt;{1,8}(a)
+<span class="k">WITH</span> collect(a) <span class="k">AS</span> onCycle
+<span class="k">MATCH</span> (x:<span class="l">Component</span>)
+<span class="k">WHERE</span> x <span class="k">IN</span> onCycle
+   <span class="k">OR</span> any(c <span class="k">IN</span> onCycle <span class="k">WHERE</span> (x)-[:<span class="r">DEPENDS_ON|HOSTED_ON</span>]-&gt;{1,8}(c))
+<span class="k">RETURN</span> collect(x.name) <span class="k">AS</span> stuck;
+<span class="c">// Expect 3: web-frontend, checkout, payments.</span>
+
+<span class="c">// ---------------------------------------------------------------------</span>
+<span class="c">// 9. FIX IT: replace the callback with an async event</span>
+<span class="c">//    (payments already publishes to event-bus; checkout subscribes)</span>
+<span class="c">// ---------------------------------------------------------------------</span>
+<span class="k">MATCH</span> (:<span class="l">Component</span> {name:<span class="s">'payments'</span>})-[d:<span class="r">DEPENDS_ON</span> {mode:<span class="s">'sync-callback'</span>}]-&gt;(:<span class="l">Component</span> {name:<span class="s">'checkout'</span>})
+<span class="k">DELETE</span> d;
+<span class="k">MATCH</span> (c:<span class="l">Component</span> {name:<span class="s">'checkout'</span>}), (b:<span class="l">Component</span> {name:<span class="s">'event-bus'</span>})
+<span class="k">MERGE</span> (c)-[:<span class="r">SUBSCRIBES_TO</span> {topic:<span class="s">'payment.completed'</span>}]-&gt;(b);
+<span class="c">// SUBSCRIBES_TO is deliberately a different type: it is a soft dependency</span>
+<span class="c">// and is not included in the blast-radius and wave queries above.</span>
+<span class="c">// Re-run the cycle check: no rows.</span>
+
+<span class="c">// ---------------------------------------------------------------------</span>
+<span class="c">// 10. OPTIONAL: Graph Data Science (AuraDS / self-managed with GDS)</span>
+<span class="c">//     GDS is not included in Aura Free.</span>
+<span class="c">// ---------------------------------------------------------------------</span>
+<span class="c">// Project with the arrows REVERSED, so "b before a" when a needs b:</span>
+<span class="k">MATCH</span> (a:<span class="l">Component</span>)-[:<span class="r">DEPENDS_ON|HOSTED_ON</span>]-&gt;(b:<span class="l">Component</span>)
+<span class="k">WITH</span> gds.graph.project(<span class="s">'startOrder'</span>, b, a) <span class="k">AS</span> g
+<span class="k">RETURN</span> g.graphName, g.nodeCount, g.relationshipCount;
+
+<span class="k">CALL</span> gds.dag.topologicalSort.stream(<span class="s">'startOrder'</span>, {computeMaxDistanceFromSource: true})
+<span class="k">YIELD</span> nodeId, maxDistanceFromSource
+<span class="k">RETURN</span> gds.util.asNode(nodeId).name <span class="k">AS</span> component,
+       toInteger(maxDistanceFromSource) + 1 <span class="k">AS</span> wave
+<span class="k">ORDER BY</span> wave, component;
+
+<span class="c">// Articulation points and bridges (undirected view of the graph).</span>
+<span class="c">// In this platform both return nothing: every server has two network paths.</span>
+<span class="k">MATCH</span> (a:<span class="l">Component</span>)-[:<span class="r">DEPENDS_ON|HOSTED_ON</span>]-&gt;(b:<span class="l">Component</span>)
+<span class="k">WITH</span> gds.graph.project(<span class="s">'undirected'</span>, a, b, {}, {undirectedRelationshipTypes:[<span class="s">'*'</span>]}) <span class="k">AS</span> g
+<span class="k">RETURN</span> g.graphName;
+<span class="k">CALL</span> gds.articulationPoints.stream(<span class="s">'undirected'</span>) <span class="k">YIELD</span> nodeId
+<span class="k">RETURN</span> gds.util.asNode(nodeId).name <span class="k">AS</span> articulation_point;
+<span class="k">CALL</span> gds.bridges.stream(<span class="s">'undirected'</span>) <span class="k">YIELD</span> from, to
+<span class="k">RETURN</span> gds.util.asNode(from).name, gds.util.asNode(to).name;
+
+<span class="k">CALL</span> gds.graph.drop(<span class="s">'startOrder'</span>, false);
+<span class="k">CALL</span> gds.graph.drop(<span class="s">'undirected'</span>, false);
+
+<span class="c">// ---------------------------------------------------------------------</span>
+<span class="c">// 11. PORTFOLIO STARTER: declared vs observed dependencies</span>
+<span class="c">//     Load declared edges from manifests as :DECLARES and observed edges</span>
+<span class="c">//     from traces as :CALLS, then diff them.</span>
+<span class="c">// ---------------------------------------------------------------------</span>
+<span class="c">// Undeclared calls (seen in traces, nobody wrote them down):</span>
+<span class="c">// MATCH (a:Component)-[:CALLS]-&gt;(b:Component)</span>
+<span class="c">// WHERE NOT (a)-[:DEPENDS_ON]-&gt;(b)</span>
+<span class="c">// RETURN a.name, b.name;</span>
+<span class="c">// Declared but never observed (stale config, or a path you never test):</span>
+<span class="c">// MATCH (a:Component)-[:DEPENDS_ON]-&gt;(b:Component)</span>
+<span class="c">// WHERE NOT (a)-[:CALLS]-&gt;(b)</span>
+<span class="c">// RETURN a.name, b.name;</span></pre>
+  </details>
+</div>
+
+<script>
+var KEY='graphlab-tab-when-one-thing-breaks',tabs=[].slice.call(document.querySelectorAll('.tab')),frame=document.getElementById('frame');
+function pick(t){tabs.forEach(function(x){x.setAttribute('aria-selected',x===t?'true':'false')});frame.src=t.dataset.src;try{localStorage.setItem(KEY,t.id)}catch(e){}}
+tabs.forEach(function(t){t.addEventListener('click',function(){pick(t)})});
+try{var saved=localStorage.getItem(KEY);if(saved&&document.getElementById(saved))pick(document.getElementById(saved))}catch(e){}
+var h=parseInt(location.hash.slice(1),10);if(h>=1&&h<=tabs.length)pick(tabs[h-1]);
+document.getElementById('copy').addEventListener('click',function(){var b=this,txt=document.getElementById('script').innerText;
+var done=function(){b.textContent='Copied';setTimeout(function(){b.textContent='Copy script'},1800)};
+var fallback=function(){var r=document.createRange();r.selectNodeContents(document.getElementById('script'));var s=getSelection();s.removeAllRanges();s.addRange(r);b.textContent='Selected: press Ctrl+C'};
+if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(done,fallback)}else fallback()});
+</script>
+
+</body>
+</html>
