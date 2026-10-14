@@ -70,18 +70,23 @@ pre{margin:0;padding:16px 18px 20px;overflow-x:auto;font:400 13.5px/1.6 var(--mo
   <p class="note">Click inside the demo once so it receives your arrow keys. All accounts and people in the demos are fictional.</p>
 
   <details>
-    <summary>Run the demo yourself in Neo4j <span>Cypher · Aura Free</span></summary>
-    <div class="code-head"><p class="note">Paste into the Aura query editor one block at a time. Expected results are in the comments. <a href="fraud-rings-demo.cypher" download style="color:var(--blue)">Download .cypher</a></p><button class="copy" id="copy" type="button">Copy script</button></div>
+    <summary>Run the demo yourself in Neo4j <span>Cypher · Sandbox or Aura Free</span></summary>
+    <div class="code-head"><p class="note">Paste into <a href="https://sandbox.neo4j.com/" target="_blank" rel="noopener" style="color:var(--blue)">Neo4j Sandbox</a> (Blank Sandbox) or Aura Free one block at a time. Each change is followed by a SEE IT query that draws the graph; expected results are in the comments. <a href="fraud-rings-demo.cypher" download style="color:var(--blue)">Download .cypher</a></p><button class="copy" id="copy" type="button">Copy script</button></div>
 <pre id="script"><span class="c">// =====================================================================</span>
 <span class="c">// Follow the Ring: graph data science for circular fraud networks</span>
-<span class="c">// Runnable demo script for Neo4j 5 / Aura Free (Cypher 5).</span>
+<span class="c">// Graph Database Africa · demo script for Neo4j 5.9+</span>
 <span class="c">// Three fictional datasets, matching the three Graph Lab widgets:</span>
 <span class="c">//   A. a transfer ring          (ring hunter)</span>
 <span class="c">//   B. a scam-money tree        (follow the money)</span>
 <span class="c">//   C. a food-delivery collusion ring (shared identifiers)</span>
-<span class="c">// Run each block separately in Neo4j Browser or the Aura query tool.</span>
-<span class="c">// Blocks marked GDS need the Graph Data Science library</span>
-<span class="c">// (Neo4j Desktop or self-managed; not included in Aura Free).</span>
+<span class="c">//</span>
+<span class="c">// HOW TO RUN</span>
+<span class="c">//   Works in Neo4j Sandbox (sandbox.neo4j.com, "Blank Sandbox"),</span>
+<span class="c">//   Neo4j Aura Free, or Neo4j Desktop.</span>
+<span class="c">//   Paste ONE block at a time (each statement ends with a semicolon).</span>
+<span class="c">//   After every change or analysis there is a "SEE IT" query (or the query</span>
+<span class="c">//   itself returns paths), so the result opens as a graph.</span>
+<span class="c">//   Block C4 needs Graph Data Science (Sandbox and Desktop; not Aura Free).</span>
 <span class="c">// =====================================================================</span>
 
 <span class="c">// ---------------------------------------------------------------------</span>
@@ -110,26 +115,27 @@ pre{margin:0;padding:16px 18px 20px;overflow-x:auto;font:400 13.5px/1.6 var(--mo
 <span class="k">MERGE</span> (b:<span class="l">Account</span> {id: row[1]})
 <span class="k">CREATE</span> (a)-[:<span class="r">TRANSFERRED</span> {amount: row[2], at: datetime(row[3])}]-&gt;(b);
 
-<span class="c">// Look at it:</span>
+<span class="c">// SEE IT: eleven accounts, thirteen transfers</span>
 <span class="k">MATCH</span> p = (:<span class="l">Account</span>)-[:<span class="r">TRANSFERRED</span>]-&gt;(:<span class="l">Account</span>) <span class="k">RETURN</span> p;
 
 <span class="c">// A2. Every loop of 3 to 6 transfers (expect 2 loops, each returned</span>
 <span class="c">//     once per starting account: 4 rows for the A ring, 3 for the B loop)</span>
 <span class="k">MATCH</span> p = (a:<span class="l">Account</span>)-[:<span class="r">TRANSFERRED</span>]-&gt;{3,6}(a)
-<span class="k">RETURN</span> [n <span class="k">IN</span> nodes(p) | n.id] <span class="k">AS</span> loop;
+<span class="k">RETURN</span> p, [n <span class="k">IN</span> nodes(p) | n.id] <span class="k">AS</span> loop;
 
 <span class="c">// A3. The ring signature: time-ordered, amounts decaying by at most 10%</span>
 <span class="c">//     per hop, whole trip inside one hour.</span>
 <span class="c">//     Expect exactly 1 row: start A-101, amounts [50000, 48500, 47100, 45600].</span>
 <span class="c">//     The time-order rule also removes the duplicate rotations.</span>
-<span class="k">MATCH</span> (a:<span class="l">Account</span>)
-      (()-[t:<span class="r">TRANSFERRED</span>]-&gt;()){3,6}
-      (a)
+<span class="k">MATCH</span> p = (a:<span class="l">Account</span>)
+          (()-[t:<span class="r">TRANSFERRED</span>]-&gt;()){3,6}
+          (a)
 <span class="k">WHERE</span> all(i <span class="k">IN</span> range(1, size(t)-1)
           <span class="k">WHERE</span> t[i].at &gt; t[i-1].at
             <span class="k">AND</span> t[i].amount &gt;= 0.9 * t[i-1].amount)
   <span class="k">AND</span> t[-1].at &lt; t[0].at + duration(<span class="s">'PT1H'</span>)
-<span class="k">RETURN</span> a.id <span class="k">AS</span> start,
+<span class="k">RETURN</span> p,
+       a.id <span class="k">AS</span> start,
        [x <span class="k">IN</span> t | x.amount] <span class="k">AS</span> amounts,
        duration.between(t[0].at, t[-1].at).minutes <span class="k">AS</span> minutes;
 
@@ -150,12 +156,16 @@ pre{margin:0;padding:16px 18px 20px;overflow-x:auto;font:400 13.5px/1.6 var(--mo
   <span class="k">AND</span> at &gt; t[-1].at
   <span class="k">AND</span> amount &gt;= 0.9 * t[-1].amount
   <span class="k">AND</span> at &lt; t[0].at + duration(<span class="s">'PT1H'</span>)
-<span class="k">RETURN</span> [n <span class="k">IN</span> nodes(p) | n.id] <span class="k">AS</span> ring_this_payment_would_close;
+<span class="k">RETURN</span> p, [n <span class="k">IN</span> nodes(p) | n.id] <span class="k">AS</span> ring_this_payment_would_close;
 
 <span class="c">//     Prefix the query above with PROFILE to see how few rows it touches.</span>
 <span class="c">//     Then put the transfer back:</span>
 <span class="k">MATCH</span> (a:<span class="l">Account</span> {id:<span class="s">'A-442'</span>}), (b:<span class="l">Account</span> {id:<span class="s">'A-101'</span>})
 <span class="k">CREATE</span> (a)-[:<span class="r">TRANSFERRED</span> {amount: 45600, at: datetime(<span class="s">'2026-03-14T09:41'</span>)}]-&gt;(b);
+
+<span class="c">// SEE IT: the ring is complete again</span>
+<span class="k">MATCH</span> p = (:<span class="l">Account</span> {id:<span class="s">'A-101'</span>})-[:<span class="r">TRANSFERRED</span>]-&gt;{4}(:<span class="l">Account</span> {id:<span class="s">'A-101'</span>})
+<span class="k">RETURN</span> p;
 
 <span class="c">// =====================================================================</span>
 <span class="c">// B. FOLLOW THE MONEY</span>
@@ -180,9 +190,14 @@ pre{margin:0;padding:16px 18px 20px;overflow-x:auto;font:400 13.5px/1.6 var(--mo
        (m3)-[:<span class="r">TRANSFERRED</span> {amount:7900, at:datetime(<span class="s">'2026-03-20T14:31'</span>)}]-&gt;(m6),
        (m5)-[:<span class="r">CASHED_OUT</span>  {amount:4400, at:datetime(<span class="s">'2026-03-20T15:02'</span>)}]-&gt;(atm);
 
+<span class="c">// SEE IT: two victims, six mule accounts, one ATM</span>
+<span class="k">MATCH</span> p = (x)-[:<span class="r">PAID|TRANSFERRED|CASHED_OUT</span>]-&gt;()
+<span class="k">WHERE</span> x:Victim <span class="k">OR</span> x.balance <span class="k">IS</span> <span class="k">NOT</span> <span class="k">NULL</span>
+<span class="k">RETURN</span> p;
+
 <span class="c">// B2. Old rule: first receiving account only. Expect R3,000.</span>
-<span class="k">MATCH</span> (:<span class="l">Victim</span> {id:<span class="s">'V-1'</span>})-[:<span class="r">PAID</span>]-&gt;(first:<span class="l">Account</span>)
-<span class="k">RETURN</span> first.id, first.balance <span class="k">AS</span> recoverable;
+<span class="k">MATCH</span> p = (:<span class="l">Victim</span> {id:<span class="s">'V-1'</span>})-[:<span class="r">PAID</span>]-&gt;(first:<span class="l">Account</span>)
+<span class="k">RETURN</span> p, first.id, first.balance <span class="k">AS</span> recoverable;
 
 <span class="c">// B3. Walk the tree forwards, time-ordered, after the scam payment.</span>
 <span class="c">//     Expect M2, M3 at hop 1 and M4, M5, M6 at hop 2 (M1 is hop 0).</span>
@@ -190,7 +205,8 @@ pre{margin:0;padding:16px 18px 20px;overflow-x:auto;font:400 13.5px/1.6 var(--mo
 <span class="k">MATCH</span> p = (m1)(()-[t:<span class="r">TRANSFERRED</span>]-&gt;()){1,4}(m:<span class="l">Account</span>)
 <span class="k">WHERE</span> t[0].at &gt; pay.at
   <span class="k">AND</span> all(i <span class="k">IN</span> range(1, size(t)-1) <span class="k">WHERE</span> t[i].at &gt; t[i-1].at)
-<span class="k">RETURN</span> m.id <span class="k">AS</span> account, min(length(p)) <span class="k">AS</span> hops_after_M1, m.balance <span class="k">AS</span> balance
+<span class="k">RETURN</span> m.id <span class="k">AS</span> account, min(length(p)) <span class="k">AS</span> hops_after_M1, m.balance <span class="k">AS</span> balance,
+       collect(p) <span class="k">AS</span> paths
 <span class="k">ORDER BY</span> hops_after_M1, account;
 
 <span class="c">// B4. Freeze the whole tree. Expect R15,600 recoverable (78%),</span>
@@ -208,6 +224,11 @@ pre{margin:0;padding:16px 18px 20px;overflow-x:auto;font:400 13.5px/1.6 var(--mo
      sum(coalesce(c.amount, 0)) <span class="k">AS</span> cashed_out
 <span class="k">RETURN</span> paid, recoverable, round(100.0 * recoverable / paid) <span class="k">AS</span> pct, cashed_out;
 
+<span class="c">// SEE IT: the whole tree that gets frozen, plus the ATM where R4,400 escaped</span>
+<span class="k">MATCH</span> p = (:<span class="l">Victim</span> {id:<span class="s">'V-1'</span>})-[:<span class="r">PAID</span>]-&gt;(:<span class="l">Account</span>)
+          -[:<span class="r">TRANSFERRED</span>*0..4]-&gt;(:<span class="l">Account</span>)-[:<span class="r">CASHED_OUT</span>*0..1]-&gt;()
+<span class="k">RETURN</span> p;
+
 <span class="c">// B5. One mule, two victims: who else paid into this tree?</span>
 <span class="c">//     Expect V-1 -&gt; M1 and V-2 -&gt; M3.</span>
 <span class="k">MATCH</span> (:<span class="l">Victim</span> {id:<span class="s">'V-1'</span>})-[pay:<span class="r">PAID</span>]-&gt;(m1:<span class="l">Account</span>)
@@ -216,8 +237,8 @@ pre{margin:0;padding:16px 18px 20px;overflow-x:auto;font:400 13.5px/1.6 var(--mo
 <span class="k">WITH</span> m1, collect(<span class="k">DISTINCT</span> m) <span class="k">AS</span> downstream
 <span class="k">WITH</span> downstream + m1 <span class="k">AS</span> tree
 <span class="k">UNWIND</span> tree <span class="k">AS</span> acc
-<span class="k">MATCH</span> (v:<span class="l">Victim</span>)-[:<span class="r">PAID</span>]-&gt;(acc)
-<span class="k">RETURN</span> v.id <span class="k">AS</span> victim, acc.id <span class="k">AS</span> paid_into
+<span class="k">MATCH</span> p = (v:<span class="l">Victim</span>)-[:<span class="r">PAID</span>]-&gt;(acc)
+<span class="k">RETURN</span> p, v.id <span class="k">AS</span> victim, acc.id <span class="k">AS</span> paid_into
 <span class="k">ORDER BY</span> victim;
 
 <span class="c">// =====================================================================</span>
@@ -250,11 +271,15 @@ pre{margin:0;padding:16px 18px 20px;overflow-x:auto;font:400 13.5px/1.6 var(--mo
 <span class="k">WHERE</span> a:Customer <span class="k">OR</span> a:Courier
 <span class="k">CREATE</span> (a)-[:<span class="r">USES_DEVICE</span>]-&gt;(d);
 
+<span class="c">// SEE IT: customers, restaurants, couriers and devices</span>
+<span class="k">MATCH</span> p = ()-[:<span class="r">ORDERED|DELIVERS_FOR|USES_DEVICE</span>]-&gt;()
+<span class="k">RETURN</span> p;
+
 <span class="c">// C2. Shared devices. Expect phone-1 with 5 users, tablet-2 with 2.</span>
-<span class="k">MATCH</span> (a)-[:<span class="r">USES_DEVICE</span>]-&gt;(d:<span class="l">Device</span>)
-<span class="k">WITH</span> d, collect(a.id) <span class="k">AS</span> users
+<span class="k">MATCH</span> p = (a)-[:<span class="r">USES_DEVICE</span>]-&gt;(d:<span class="l">Device</span>)
+<span class="k">WITH</span> d, collect(a.id) <span class="k">AS</span> users, collect(p) <span class="k">AS</span> paths
 <span class="k">WHERE</span> size(users) &gt; 1
-<span class="k">RETURN</span> d.id <span class="k">AS</span> device, users;
+<span class="k">RETURN</span> d.id <span class="k">AS</span> device, users, paths;
 
 <span class="c">// C3. Score each shared device (plain Cypher, works on Aura Free).</span>
 <span class="c">//     Expect phone-1: 5 accounts, 37 orders, 100% to Rest. A,</span>
@@ -280,7 +305,12 @@ pre{margin:0;padding:16px 18px 20px;overflow-x:auto;font:400 13.5px/1.6 var(--mo
        } <span class="k">AS</span> courier_on_same_device
 <span class="k">ORDER BY</span> pct_to_top <span class="k">DESC</span>;
 
+<span class="c">// SEE IT: everything around the flagged phone</span>
+<span class="k">MATCH</span> p = (:<span class="l">Device</span> {id:<span class="s">'phone-1'</span>})&lt;-[:<span class="r">USES_DEVICE</span>]-()-[:<span class="r">ORDERED|DELIVERS_FOR</span>]-&gt;(:<span class="l">Restaurant</span>)
+<span class="k">RETURN</span> p;
+
 <span class="c">// C4. GDS: community detection (Louvain).</span>
+<span class="c">//     Check GDS is installed first:  RETURN gds.version();</span>
 <span class="c">//     Expect two communities:</span>
 <span class="c">//       {user-1..4, courier-1, phone-1, Rest. A}</span>
 <span class="c">//       {user-5, user-6, user-7, courier-2, tablet-2, Rest. B, Rest. C}</span>
@@ -290,10 +320,20 @@ pre{margin:0;padding:16px 18px 20px;overflow-x:auto;font:400 13.5px/1.6 var(--mo
 
 <span class="k">CALL</span> gds.louvain.stream(<span class="s">'orders'</span>)
 <span class="k">YIELD</span> nodeId, communityId
-<span class="k">WITH</span> communityId, collect(coalesce(gds.util.asNode(nodeId).id,
-                                   gds.util.asNode(nodeId).name)) <span class="k">AS</span> members
-<span class="k">RETURN</span> communityId, size(members) <span class="k">AS</span> size, members
+<span class="k">WITH</span> communityId, collect(gds.util.asNode(nodeId)) <span class="k">AS</span> members
+<span class="k">RETURN</span> communityId,
+       size(members) <span class="k">AS</span> size,
+       [x <span class="k">IN</span> members | coalesce(x.id, x.name)] <span class="k">AS</span> names
 <span class="k">ORDER BY</span> size <span class="k">DESC</span>;
+
+<span class="c">// SEE IT: each community drawn with only its internal relationships</span>
+<span class="k">CALL</span> gds.louvain.stream(<span class="s">'orders'</span>)
+<span class="k">YIELD</span> nodeId, communityId
+<span class="k">WITH</span> communityId, collect(gds.util.asNode(nodeId)) <span class="k">AS</span> members
+<span class="k">UNWIND</span> members <span class="k">AS</span> a
+<span class="k">MATCH</span> p = (a)-[:<span class="r">ORDERED|DELIVERS_FOR|USES_DEVICE</span>]-&gt;(b)
+<span class="k">WHERE</span> b <span class="k">IN</span> members
+<span class="k">RETURN</span> communityId, collect(p) <span class="k">AS</span> paths;
 
 <span class="k">CALL</span> gds.graph.drop(<span class="s">'orders'</span>, false);
 

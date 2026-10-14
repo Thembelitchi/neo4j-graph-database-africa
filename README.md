@@ -91,7 +91,19 @@ Autoplay comes back after 30 seconds without input. Click inside an embedded wid
 
 ## Run the demo yourself
 
-Every Graph Lab page has a *Run the demo yourself* panel with the full Cypher script for that talk, and the three newer talks also ship it as a `.cypher` file. The scripts run on Aura Free; blocks marked GDS need the Graph Data Science library (Neo4j Desktop or self-managed).
+Every talk ships a ready-to-paste Cypher script, linked from its Graph Lab page:
+
+| Talk | Script |
+|---|---|
+| The Power of the Network | [power-of-the-network-demo.cypher](talks/power-of-the-network/power-of-the-network-demo.cypher) |
+| One Customer, Many Records | [customer-360-demo.cypher](talks/one-customer-many-records/customer-360-demo.cypher) |
+| When One Thing Breaks | [sre-dependency-demo.cypher](talks/when-one-thing-breaks/sre-dependency-demo.cypher) |
+| Follow the Ring | [fraud-rings-demo.cypher](talks/follow-the-ring/fraud-rings-demo.cypher) |
+
+1. Open a free [Neo4j Sandbox](https://sandbox.neo4j.com/) (choose **Blank Sandbox**), an Aura Free database, or Neo4j Desktop. The scripts need Neo4j 5.9 or later.
+2. Paste **one block at a time** and run it. Each statement ends with a semicolon.
+3. After every change there is a **SEE IT** query that returns paths, so the result opens as a graph showing exactly what was added. Expected results are in the comments.
+4. Blocks marked GDS need the Graph Data Science library: available in Sandbox and Desktop, not in Aura Free. Run `RETURN gds.version();` to check.
 
 ## Structure
 
@@ -99,7 +111,7 @@ Every Graph Lab page has a *Run the demo yourself* panel with the full Cypher sc
 index.html                              Landing page
 talks/<talk>/index.html                 Graph Lab for each talk
 talks/<talk>/widgets/*.html             Embeddable widgets (no build step, no dependencies)
-talks/<talk>/*.cypher                   Runnable demo script
+talks/<talk>/*.cypher                   Runnable demo script (paste into Sandbox or Aura)
 
 talks/power-of-the-network/             Knowledge graphs, Cypher and GraphRAG
 talks/one-customer-many-records/        MDM, Customer 360 and recommendations

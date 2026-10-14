@@ -72,50 +72,95 @@ pre{margin:0;padding:16px 18px 20px;overflow-x:auto;font:400 13.5px/1.6 var(--mo
   <p class="note">Click inside the demo once so it receives your arrow keys. All patient data is fictional and for teaching only, not clinical guidance.</p>
 
   <details>
-    <summary>Run the demo yourself in Neo4j Aura Free <span>Cypher · 6 steps</span></summary>
-    <div class="code-head"><p class="note">Paste into the Aura query editor one step at a time. Run step 1 twice to see MERGE vs CREATE.</p><button class="copy" id="copy" type="button">Copy script</button></div>
-<pre id="script"><span class="c">// STEP 0: constraints make MERGE safe and fast</span>
-<span class="k">CREATE CONSTRAINT</span> patient_id <span class="k">IF NOT EXISTS FOR</span> (p:<span class="l">Patient</span>) <span class="k">REQUIRE</span> p.id <span class="k">IS UNIQUE</span>;
-<span class="k">CREATE CONSTRAINT</span> isolate_id <span class="k">IF NOT EXISTS FOR</span> (i:<span class="l">Isolate</span>) <span class="k">REQUIRE</span> i.id <span class="k">IS UNIQUE</span>;
-<span class="k">CREATE CONSTRAINT</span> drug_name <span class="k">IF NOT EXISTS FOR</span> (d:<span class="l">Drug</span>) <span class="k">REQUIRE</span> d.name <span class="k">IS UNIQUE</span>;
+    <summary>Run the demo yourself in Neo4j <span>Cypher · Sandbox or Aura Free</span></summary>
+    <div class="code-head"><p class="note">Paste into <a href="https://sandbox.neo4j.com/" target="_blank" rel="noopener" style="color:var(--blue)">Neo4j Sandbox</a> (Blank Sandbox) or Aura Free one block at a time. Every step returns what it added, so the result draws as a graph. Run step 1 twice to see MERGE vs CREATE. <a href="power-of-the-network-demo.cypher" download style="color:var(--blue)">Download .cypher</a></p><button class="copy" id="copy" type="button">Copy script</button></div>
+<pre id="script"><span class="c">// =====================================================================</span>
+<span class="c">// The Power of the Network: a clinical knowledge graph, written live</span>
+<span class="c">// Graph Database Africa · demo script for Neo4j 5</span>
+<span class="c">// All patient data is fictional and for teaching only, not clinical guidance.</span>
+<span class="c">//</span>
+<span class="c">// HOW TO RUN</span>
+<span class="c">//   Works in Neo4j Sandbox (sandbox.neo4j.com, "Blank Sandbox"),</span>
+<span class="c">//   Neo4j Aura Free, or Neo4j Desktop.</span>
+<span class="c">//   Paste ONE block at a time (each block ends with a semicolon) and run it.</span>
+<span class="c">//   Every step ends by RETURNing what it just added, so the result opens</span>
+<span class="c">//   as a graph. Switch between Graph and Table view to see both.</span>
+<span class="c">// =====================================================================</span>
 
-<span class="c">// STEP 1: a patient and a specimen (MERGE = match or create; CREATE = always new)</span>
+
+<span class="c">// ---------- 0. Reset (demo database only!) ----------</span>
+<span class="k">MATCH</span> (n) <span class="k">DETACH</span> <span class="k">DELETE</span> n;
+
+
+<span class="c">// ---------- 0b. Constraints make MERGE safe and fast ----------</span>
+<span class="k">CREATE</span> <span class="k">CONSTRAINT</span> patient_id <span class="k">IF</span> <span class="k">NOT</span> <span class="k">EXISTS</span> <span class="k">FOR</span> (p:<span class="l">Patient</span>) <span class="k">REQUIRE</span> p.id <span class="k">IS</span> <span class="k">UNIQUE</span>;
+<span class="k">CREATE</span> <span class="k">CONSTRAINT</span> isolate_id <span class="k">IF</span> <span class="k">NOT</span> <span class="k">EXISTS</span> <span class="k">FOR</span> (i:<span class="l">Isolate</span>) <span class="k">REQUIRE</span> i.id <span class="k">IS</span> <span class="k">UNIQUE</span>;
+<span class="k">CREATE</span> <span class="k">CONSTRAINT</span> drug_name <span class="k">IF</span> <span class="k">NOT</span> <span class="k">EXISTS</span> <span class="k">FOR</span> (d:<span class="l">Drug</span>) <span class="k">REQUIRE</span> d.name <span class="k">IS</span> <span class="k">UNIQUE</span>;
+
+
+<span class="c">// ---------- STEP 1. A patient and a specimen ----------</span>
+<span class="c">// MERGE = match or create; CREATE = always new.</span>
+<span class="c">// Run this block twice: the patient stays single, the specimen duplicates.</span>
 <span class="k">MERGE</span> (p:<span class="l">Patient</span> {id:<span class="s">'PT-001'</span>})
 <span class="k">CREATE</span> (s:<span class="l">Specimen</span> {id:<span class="s">'SP-1001'</span>, type:<span class="s">'Blood culture'</span>})
-<span class="k">MERGE</span> (p)-[:<span class="r">HAS_SPECIMEN</span> {collected: date(<span class="s">'2026-10-01'</span>)}]-&gt;(s);
+<span class="k">MERGE</span> (p)-[r:<span class="r">HAS_SPECIMEN</span> {collected: date(<span class="s">'2026-10-01'</span>)}]-&gt;(s)
+<span class="k">RETURN</span> p, r, s;
 
-<span class="c">// STEP 2: the lab identifies an isolate</span>
+<span class="c">// SEE IT: how many specimens does PT-001 have now?</span>
+<span class="k">MATCH</span> path = (:<span class="l">Patient</span> {id:<span class="s">'PT-001'</span>})-[:<span class="r">HAS_SPECIMEN</span>]-&gt;(:<span class="l">Specimen</span>)
+<span class="k">RETURN</span> path;
+<span class="c">// Clean up the duplicate before moving on:</span>
+<span class="k">MATCH</span> (s:<span class="l">Specimen</span> {id:<span class="s">'SP-1001'</span>})
+<span class="k">WITH</span> s <span class="k">ORDER BY</span> elementId(s) SKIP 1
+<span class="k">DETACH</span> <span class="k">DELETE</span> s;
+
+
+<span class="c">// ---------- STEP 2. The lab identifies an isolate ----------</span>
 <span class="k">MATCH</span> (s:<span class="l">Specimen</span> {id:<span class="s">'SP-1001'</span>})
 <span class="k">MERGE</span> (t:<span class="l">LabTest</span> {method:<span class="s">'MALDI-TOF'</span>})
 <span class="k">MERGE</span> (s)-[:<span class="r">TESTED_BY</span>]-&gt;(t)
 <span class="k">MERGE</span> (i:<span class="l">Isolate</span> {id:<span class="s">'ISO-77'</span>})
 <span class="k">MERGE</span> (t)-[:<span class="r">IDENTIFIED</span>]-&gt;(i)
 <span class="k">MERGE</span> (o:<span class="l">Pathogen</span> {name:<span class="s">'Klebsiella pneumoniae'</span>})
-<span class="k">MERGE</span> (i)-[:<span class="r">INSTANCE_OF</span>]-&gt;(o);
+<span class="k">MERGE</span> (i)-[:<span class="r">INSTANCE_OF</span>]-&gt;(o)
+<span class="k">WITH</span> s
+<span class="k">MATCH</span> path = (s)-[:<span class="r">TESTED_BY</span>]-&gt;()-[:<span class="r">IDENTIFIED</span>]-&gt;()-[:<span class="r">INSTANCE_OF</span>]-&gt;()
+<span class="k">RETURN</span> path;
 
-<span class="c">// STEP 3: a resistance mechanism is detected</span>
+
+<span class="c">// ---------- STEP 3. A resistance mechanism is detected ----------</span>
 <span class="k">MATCH</span> (i:<span class="l">Isolate</span> {id:<span class="s">'ISO-77'</span>})
 <span class="k">MERGE</span> (m:<span class="l">Mechanism</span> {name:<span class="s">'KPC'</span>, gene:<span class="s">'blaKPC'</span>})
-<span class="k">MERGE</span> (i)-[:<span class="r">CARRIES</span>]-&gt;(m);
+<span class="k">MERGE</span> (i)-[r:<span class="r">CARRIES</span>]-&gt;(m)
+<span class="k">RETURN</span> i, r, m;
 
-<span class="c">// STEP 4: drug knowledge joins the graph</span>
+
+<span class="c">// ---------- STEP 4. Drug knowledge joins the graph ----------</span>
 <span class="k">MATCH</span> (m:<span class="l">Mechanism</span> {name:<span class="s">'KPC'</span>})
 <span class="k">MERGE</span> (d:<span class="l">Drug</span> {name:<span class="s">'Meropenem'</span>}) <span class="k">SET</span> d.class = <span class="s">'Carbapenem'</span>
-<span class="k">MERGE</span> (m)-[:<span class="r">CONFERS_RESISTANCE_TO</span>]-&gt;(d);
+<span class="k">MERGE</span> (m)-[r:<span class="r">CONFERS_RESISTANCE_TO</span>]-&gt;(d)
+<span class="k">RETURN</span> m, r, d;
 
-<span class="c">// STEP 5: susceptibility results live on relationships</span>
+
+<span class="c">// ---------- STEP 5. Susceptibility results live on relationships ----------</span>
 <span class="k">MATCH</span> (i:<span class="l">Isolate</span> {id:<span class="s">'ISO-77'</span>}), (d:<span class="l">Drug</span> {name:<span class="s">'Meropenem'</span>})
 <span class="k">MERGE</span> (c:<span class="l">Drug</span> {name:<span class="s">'Ceftazidime-avibactam'</span>})
-<span class="k">MERGE</span> (i)-[:<span class="r">AST_RESULT</span> {sir:<span class="s">'R'</span>}]-&gt;(d)
-<span class="k">MERGE</span> (i)-[:<span class="r">AST_RESULT</span> {sir:<span class="s">'S'</span>}]-&gt;(c);
+<span class="k">MERGE</span> (i)-[r1:<span class="r">AST_RESULT</span> {sir:<span class="s">'R'</span>}]-&gt;(d)
+<span class="k">MERGE</span> (i)-[r2:<span class="r">AST_RESULT</span> {sir:<span class="s">'S'</span>}]-&gt;(c)
+<span class="k">RETURN</span> i, r1, d, r2, c;
 
-<span class="c">// STEP 6: the multi-hop question</span>
+
+<span class="c">// ---------- STEP 6. The multi-hop question ----------</span>
+<span class="c">// Which drugs should we avoid for this patient, and why?</span>
 <span class="k">MATCH</span> path = (:<span class="l">Patient</span> {id:<span class="s">'PT-001'</span>})-[:<span class="r">HAS_SPECIMEN</span>]-&gt;()-[:<span class="r">TESTED_BY</span>]-&gt;()
              -[:<span class="r">IDENTIFIED</span>]-&gt;(:<span class="l">Isolate</span>)-[:<span class="r">CARRIES</span>]-&gt;(m)-[:<span class="r">CONFERS_RESISTANCE_TO</span>]-&gt;(d:<span class="l">Drug</span>)
-<span class="k">RETURN</span> m.name, d.name <span class="k">AS</span> avoid, path;
+<span class="k">RETURN</span> path, m.name <span class="k">AS</span> mechanism, d.name <span class="k">AS</span> avoid;
+<span class="c">// Expect: KPC, Meropenem.</span>
 
-<span class="c">// Reset when you are done</span>
-<span class="c">// MATCH (n) DETACH DELETE n;</span></pre>
+
+<span class="c">// ---------- SEE IT: the whole knowledge graph ----------</span>
+<span class="k">MATCH</span> path = (:<span class="l">Patient</span> {id:<span class="s">'PT-001'</span>})-[*1..6]-&gt;()
+<span class="k">RETURN</span> path;</pre>
   </details>
 </div>
 

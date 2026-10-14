@@ -70,13 +70,20 @@ pre{margin:0;padding:16px 18px 20px;overflow-x:auto;font:400 13.5px/1.6 var(--mo
   <p class="note">Click inside the demo once so it receives your arrow keys. All people, emails and phone numbers are fictional.</p>
 
   <details>
-    <summary>Run the demo yourself in Neo4j <span>Cypher · Aura Free</span></summary>
-    <div class="code-head"><p class="note">Paste into the Aura query editor one block at a time. Expected results are in the comments. <a href="customer-360-demo.cypher" download style="color:var(--blue)">Download .cypher</a></p><button class="copy" id="copy" type="button">Copy script</button></div>
+    <summary>Run the demo yourself in Neo4j <span>Cypher · Sandbox or Aura Free</span></summary>
+    <div class="code-head"><p class="note">Paste into <a href="https://sandbox.neo4j.com/" target="_blank" rel="noopener" style="color:var(--blue)">Neo4j Sandbox</a> (Blank Sandbox) or Aura Free one block at a time. Each change is followed by a SEE IT query that draws the graph; expected results are in the comments. <a href="customer-360-demo.cypher" download style="color:var(--blue)">Download .cypher</a></p><button class="copy" id="copy" type="button">Copy script</button></div>
 <pre id="script"><span class="c">// =====================================================================</span>
-<span class="c">// One Customer, Many Records — Customer 360 + recommendations demo</span>
-<span class="c">// Graph Database Africa · Neo4j 5.26+ / 2026.x (Aura Free works)</span>
+<span class="c">// One Customer, Many Records: Customer 360 + recommendations demo</span>
+<span class="c">// Graph Database Africa · demo script for Neo4j 5.9+</span>
 <span class="c">// All people, emails and phone numbers are fictional.</span>
-<span class="c">// Run one block at a time (separate statements with the ; shown).</span>
+<span class="c">//</span>
+<span class="c">// HOW TO RUN</span>
+<span class="c">//   Works in Neo4j Sandbox (sandbox.neo4j.com, "Blank Sandbox"),</span>
+<span class="c">//   Neo4j Aura Free, or Neo4j Desktop.</span>
+<span class="c">//   Paste ONE block at a time (each statement ends with a semicolon).</span>
+<span class="c">//   After every change there is a "SEE IT" query that returns paths,</span>
+<span class="c">//   so the result opens as a graph showing what was just added.</span>
+<span class="c">//   Block 12 needs Graph Data Science (Sandbox and Desktop; not Aura Free).</span>
 <span class="c">// =====================================================================</span>
 
 <span class="c">// ---------- 0. Reset (demo database only!) and constraints ----------</span>
@@ -107,10 +114,19 @@ FOREACH (_ <span class="k">IN</span> <span class="k">CASE</span> <span class="k"
 FOREACH (_ <span class="k">IN</span> <span class="k">CASE</span> <span class="k">WHEN</span> r.device <span class="k">IS</span> <span class="k">NULL</span> <span class="k">THEN</span> [] <span class="k">ELSE</span> [1] <span class="k">END</span> |
   <span class="k">MERGE</span> (d:<span class="l">Device</span> {id:r.device})     <span class="k">MERGE</span> (c)-[:<span class="r">USES_DEVICE</span>]-&gt;(d));
 
+<span class="c">// SEE IT: ten records and the identifiers they share</span>
+<span class="k">MATCH</span> (c:<span class="l">Customer</span>)
+<span class="k">OPTIONAL</span> <span class="k">MATCH</span> path = (c)-[:<span class="r">HAS_EMAIL|HAS_PHONE|USES_DEVICE</span>]-&gt;()
+<span class="k">RETURN</span> c, path;
+
 <span class="c">// ---------- 2. The trap: support logged three people with the call-centre line ----------</span>
 <span class="k">MATCH</span> (c:<span class="l">Customer</span>) <span class="k">WHERE</span> c.id <span class="k">IN</span> [<span class="s">'SUP-3302'</span>,<span class="s">'SUP-3310'</span>,<span class="s">'SUP-3321'</span>]
 <span class="k">MERGE</span> (p:<span class="l">Phone</span> {number:<span class="s">'+27860100200'</span>}) <span class="k">SET</span> p.note = <span class="s">'call centre'</span>
 <span class="k">MERGE</span> (c)-[:<span class="r">HAS_PHONE</span>]-&gt;(p);
+
+<span class="c">// SEE IT: three different people now share one phone node</span>
+<span class="k">MATCH</span> path = (:<span class="l">Customer</span>)-[:<span class="r">HAS_PHONE</span>]-&gt;(:<span class="l">Phone</span> {number:<span class="s">'+27860100200'</span>})
+<span class="k">RETURN</span> path;
 
 <span class="c">// ---------- 3. Products and purchases (recorded against source records) ----------</span>
 <span class="k">UNWIND</span> [[<span class="s">'P-100'</span>,<span class="s">'Trail Running Shoes'</span>],[<span class="s">'P-101'</span>,<span class="s">'Hydration Vest'</span>],[<span class="s">'P-102'</span>,<span class="s">'Energy Gels'</span>],
@@ -125,6 +141,10 @@ FOREACH (_ <span class="k">IN</span> <span class="k">CASE</span> <span class="k"
 <span class="k">MATCH</span> (c:<span class="l">Customer</span> {id:x[0]}), (p:<span class="l">Product</span> {sku:x[1]})
 <span class="k">MERGE</span> (c)-[:<span class="r">PURCHASED</span>]-&gt;(p);
 
+<span class="c">// SEE IT: purchases, still recorded against separate source records</span>
+<span class="k">MATCH</span> path = (:<span class="l">Customer</span>)-[:<span class="r">PURCHASED</span>]-&gt;(:<span class="l">Product</span>)
+<span class="k">RETURN</span> path;
+
 <span class="c">// ---------- 4. Order, duplicate payment, refund and support ticket (for the assistant demo) ----------</span>
 <span class="k">MATCH</span> (c:<span class="l">Customer</span> {id:<span class="s">'WEB-7781'</span>}), (s:<span class="l">Product</span> {sku:<span class="s">'P-100'</span>})
 <span class="k">MERGE</span> (o:<span class="l">Order</span> {id:<span class="s">'ORD-551'</span>}) <span class="k">MERGE</span> (c)-[:<span class="r">PLACED</span>]-&gt;(o) <span class="k">MERGE</span> (o)-[:<span class="r">CONTAINS</span>]-&gt;(s)
@@ -138,10 +158,14 @@ FOREACH (_ <span class="k">IN</span> <span class="k">CASE</span> <span class="k"
 <span class="k">MERGE</span> (t:<span class="l">Ticket</span> {id:<span class="s">'TCK-1'</span>}) <span class="k">SET</span> t.topic = <span class="s">'Size exchange'</span>, t.status = <span class="s">'shipped'</span>
 <span class="k">MERGE</span> (c)-[:<span class="r">LOGGED</span>]-&gt;(t) <span class="k">MERGE</span> (t)-[:<span class="r">ABOUT</span>]-&gt;(o);
 
+<span class="c">// SEE IT: one order, two payments, a refund and a ticket from another system</span>
+<span class="k">MATCH</span> path = (:<span class="l">Order</span> {id:<span class="s">'ORD-551'</span>})-[:<span class="r">CONTAINS|FOR|REFUNDS|ABOUT|PLACED|LOGGED</span>*1..2]-()
+<span class="k">RETURN</span> path;
+
 <span class="c">// ---------- 5a. Show the trap (read-only): without a guard, strangers link up ----------</span>
-<span class="k">MATCH</span> (a:<span class="l">Customer</span>)-[:<span class="r">HAS_EMAIL|HAS_PHONE|USES_DEVICE</span>]-&gt;(i)&lt;-[:<span class="r">HAS_EMAIL|HAS_PHONE|USES_DEVICE</span>]-(b:<span class="l">Customer</span>)
+<span class="k">MATCH</span> path = (a:<span class="l">Customer</span>)-[:<span class="r">HAS_EMAIL|HAS_PHONE|USES_DEVICE</span>]-&gt;(i)&lt;-[:<span class="r">HAS_EMAIL|HAS_PHONE|USES_DEVICE</span>]-(b:<span class="l">Customer</span>)
 <span class="k">WHERE</span> a.id &lt; b.id
-<span class="k">RETURN</span> a.id, b.id, labels(i)[0] <span class="k">AS</span> via, coalesce(i.address, i.number, i.id) <span class="k">AS</span> value
+<span class="k">RETURN</span> path, a.id, b.id, labels(i)[0] <span class="k">AS</span> via, coalesce(i.address, i.number, i.id) <span class="k">AS</span> value
 <span class="k">ORDER BY</span> via, a.id;
 <span class="c">// Expect pairs like SUP-3302 / SUP-3310 via the call-centre phone. Those are different people.</span>
 
@@ -152,6 +176,10 @@ FOREACH (_ <span class="k">IN</span> <span class="k">CASE</span> <span class="k"
 <span class="k">WITH</span> a, b, count(<span class="k">DISTINCT</span> i) <span class="k">AS</span> strength
 <span class="k">MERGE</span> (a)-[m:<span class="r">SAME_AS</span>]-&gt;(b) <span class="k">SET</span> m.strength = strength;
 
+<span class="c">// SEE IT: SAME_AS links only where the evidence is safe (no call-centre links)</span>
+<span class="k">MATCH</span> path = (:<span class="l">Customer</span>)-[:<span class="r">SAME_AS</span>]-&gt;(:<span class="l">Customer</span>)
+<span class="k">RETURN</span> path;
+
 <span class="c">// ---------- 6. Golden records (Cypher version; use GDS WCC at scale, block 12) ----------</span>
 <span class="k">MATCH</span> (c:<span class="l">Customer</span>)
 <span class="k">OPTIONAL</span> <span class="k">MATCH</span> (c)-[:<span class="r">SAME_AS</span>]-+(o:<span class="l">Customer</span>)
@@ -160,6 +188,10 @@ FOREACH (_ <span class="k">IN</span> <span class="k">CASE</span> <span class="k"
 <span class="k">MERGE</span> (p:<span class="l">Person</span> {id:<span class="s">'PER-'</span> + key})
 <span class="k">MERGE</span> (c)-[:<span class="r">RESOLVES_TO</span>]-&gt;(p);
 
+<span class="c">// SEE IT: ten records resolve to five golden records</span>
+<span class="k">MATCH</span> path = (:<span class="l">Customer</span>)-[:<span class="r">RESOLVES_TO</span>]-&gt;(:<span class="l">Person</span>)
+<span class="k">RETURN</span> path;
+
 <span class="c">// Survivorship: CRM wins the name, then the shop; keep provenance</span>
 <span class="k">MATCH</span> (p:<span class="l">Person</span>)&lt;-[:<span class="r">RESOLVES_TO</span>]-(c:<span class="l">Customer</span>)
 <span class="k">WITH</span> p, collect(c) <span class="k">AS</span> recs
@@ -167,7 +199,7 @@ FOREACH (_ <span class="k">IN</span> <span class="k">CASE</span> <span class="k"
                          head([r <span class="k">IN</span> recs <span class="k">WHERE</span> r.source = <span class="s">'SHOP'</span> | r.name]), recs[0].name),
     p.sources = [r <span class="k">IN</span> recs | r.source + <span class="s">':'</span> + r.id];
 
-<span class="k">MATCH</span> (p:<span class="l">Person</span>) <span class="k">RETURN</span> p.id, p.name, p.sources <span class="k">ORDER BY</span> p.id;
+<span class="k">MATCH</span> (p:<span class="l">Person</span>) <span class="k">RETURN</span> p, p.id, p.name, p.sources <span class="k">ORDER BY</span> p.id;
 <span class="c">// Expect 5 people from 10 records:</span>
 <span class="c">//   PER-CRM-001 Thandi Mokoena (CRM, SHOP, SUPPORT)   PER-CRM-002 Sipho Dlamini (CRM, SHOP, SUPPORT)</span>
 <span class="c">//   PER-SUP-3321 Lerato Naidoo (SHOP, SUPPORT)        PER-WEB-8100 Ayesha Khan   PER-WEB-8200 Bongani Zulu</span>
@@ -177,9 +209,13 @@ FOREACH (_ <span class="k">IN</span> <span class="k">CASE</span> <span class="k"
 <span class="k">MERGE</span> (k:<span class="l">Consent</span> {id:<span class="s">'CONSENT-PER-CRM-001'</span>}) <span class="k">SET</span> k.directMarketing = false, k.recorded = date(<span class="s">'2026-03-01'</span>)
 <span class="k">MERGE</span> (p)-[:<span class="r">HAS_CONSENT</span>]-&gt;(k);
 
+<span class="c">// SEE IT</span>
+<span class="k">MATCH</span> path = (:<span class="l">Person</span> {id:<span class="s">'PER-CRM-001'</span>})-[:<span class="r">HAS_CONSENT</span>]-&gt;(:<span class="l">Consent</span>)
+<span class="k">RETURN</span> path;
+
 <span class="c">// ---------- 8. Customer 360: everything about Thandi, across all three systems ----------</span>
-<span class="k">MATCH</span> (p:<span class="l">Person</span> {id:<span class="s">'PER-CRM-001'</span>})&lt;-[:<span class="r">RESOLVES_TO</span>]-(c:<span class="l">Customer</span>)-[rel:<span class="r">PURCHASED|PLACED|LOGGED</span>]-&gt;(x)
-<span class="k">RETURN</span> p.name, c.source, c.id, type(rel) <span class="k">AS</span> interaction,
+<span class="k">MATCH</span> path = (p:<span class="l">Person</span> {id:<span class="s">'PER-CRM-001'</span>})&lt;-[:<span class="r">RESOLVES_TO</span>]-(c:<span class="l">Customer</span>)-[rel:<span class="r">PURCHASED|PLACED|LOGGED</span>]-&gt;(x)
+<span class="k">RETURN</span> path, p.name, c.source, c.id, type(rel) <span class="k">AS</span> interaction,
        coalesce(x.name, x.topic, x.id) <span class="k">AS</span> item
 <span class="k">ORDER BY</span> c.source;
 
@@ -192,9 +228,20 @@ FOREACH (_ <span class="k">IN</span> <span class="k">CASE</span> <span class="k"
 <span class="k">RETURN</span> o.id, collect(<span class="k">DISTINCT</span> pay.id) <span class="k">AS</span> payments, collect(<span class="k">DISTINCT</span> ref.id + <span class="s">' '</span> + ref.status) <span class="k">AS</span> refunds,
        collect(<span class="k">DISTINCT</span> t.id + <span class="s">' '</span> + t.status) <span class="k">AS</span> tickets;
 
+<span class="c">// SEE IT: the evidence the assistant would cite</span>
+<span class="k">MATCH</span> path = (:<span class="l">Person</span> {id:<span class="s">'PER-CRM-001'</span>})&lt;-[:<span class="r">RESOLVES_TO</span>]-()-[:<span class="r">PLACED|LOGGED</span>]-&gt;()
+              -[:<span class="r">CONTAINS|ABOUT</span>]-&gt;()
+<span class="k">RETURN</span> path
+<span class="k">UNION</span>
+<span class="k">MATCH</span> path = (:<span class="l">Refund</span>)-[:<span class="r">REFUNDS</span>]-&gt;(:<span class="l">Payment</span>)-[:<span class="r">FOR</span>]-&gt;(:<span class="l">Order</span> {id:<span class="s">'ORD-551'</span>})
+<span class="k">RETURN</span> path
+<span class="k">UNION</span>
+<span class="k">MATCH</span> path = (:<span class="l">Payment</span>)-[:<span class="r">FOR</span>]-&gt;(:<span class="l">Order</span> {id:<span class="s">'ORD-551'</span>})
+<span class="k">RETURN</span> path;
+
 <span class="c">// Consent check before any marketing</span>
-<span class="k">MATCH</span> (:<span class="l">Person</span> {id:<span class="s">'PER-CRM-001'</span>})-[:<span class="r">HAS_CONSENT</span>]-&gt;(k:<span class="l">Consent</span>)
-<span class="k">RETURN</span> k.directMarketing <span class="k">AS</span> mayMarket;   <span class="c">// false</span>
+<span class="k">MATCH</span> path = (:<span class="l">Person</span> {id:<span class="s">'PER-CRM-001'</span>})-[:<span class="r">HAS_CONSENT</span>]-&gt;(k:<span class="l">Consent</span>)
+<span class="k">RETURN</span> path, k.directMarketing <span class="k">AS</span> mayMarket;   <span class="c">// false</span>
 
 <span class="c">// ---------- 10. User-based collaborative filtering, popularity-damped ----------</span>
 <span class="k">MATCH</span> (t:<span class="l">Person</span> {id:<span class="s">'PER-CRM-001'</span>})&lt;-[:<span class="r">RESOLVES_TO</span>]-()-[:<span class="r">PURCHASED</span>]-&gt;(p:<span class="l">Product</span>)
@@ -210,10 +257,21 @@ FOREACH (_ <span class="k">IN</span> <span class="k">CASE</span> <span class="k"
 <span class="k">ORDER BY</span> damped <span class="k">DESC</span> <span class="k">LIMIT</span> 5;
 <span class="c">// Expect: Hydration Vest 1.864, Headlamp 0.91, GPS Watch 0.91, Yoga Mat 0.721</span>
 
+<span class="c">// SEE IT: why the Hydration Vest? The explanation paths.</span>
+<span class="k">MATCH</span> path = (t:<span class="l">Person</span> {id:<span class="s">'PER-CRM-001'</span>})&lt;-[:<span class="r">RESOLVES_TO</span>]-()-[:<span class="r">PURCHASED</span>]-&gt;(:<span class="l">Product</span>)
+             &lt;-[:<span class="r">PURCHASED</span>]-()-[:<span class="r">RESOLVES_TO</span>]-&gt;(peer:<span class="l">Person</span>)
+             &lt;-[:<span class="r">RESOLVES_TO</span>]-()-[:<span class="r">PURCHASED</span>]-&gt;(:<span class="l">Product</span> {name:<span class="s">'Hydration Vest'</span>})
+<span class="k">WHERE</span> peer &lt;&gt; t
+<span class="k">RETURN</span> path;
+
 <span class="c">// ---------- 10b. Experiment: make the water bottle a best-seller, then rerun block 10 ----------</span>
 <span class="k">UNWIND</span> [<span class="s">'WEB-7790'</span>,<span class="s">'WEB-8041'</span>,<span class="s">'WEB-8100'</span>] <span class="k">AS</span> id
 <span class="k">MATCH</span> (c:<span class="l">Customer</span> {id:id}), (b:<span class="l">Product</span> {sku:<span class="s">'P-106'</span>})
 <span class="k">MERGE</span> (c)-[:<span class="r">PURCHASED</span>]-&gt;(b);
+
+<span class="c">// SEE IT: the water bottle is now a best-seller</span>
+<span class="k">MATCH</span> path = (:<span class="l">Customer</span>)-[:<span class="r">PURCHASED</span>]-&gt;(:<span class="l">Product</span> {sku:<span class="s">'P-106'</span>})
+<span class="k">RETURN</span> path;
 <span class="c">// Rerun block 10: raw score ties Vest and Water Bottle at 3; damped keeps Vest first (1.864 vs 1.674).</span>
 
 <span class="c">// ---------- 11. Item-to-item: "bought X, also bought Y" (Jaccard over people) ----------</span>
@@ -226,7 +284,16 @@ FOREACH (_ <span class="k">IN</span> <span class="k">CASE</span> <span class="k"
 <span class="k">RETURN</span> y.name, round(toFloat(shared) / (total - shared), 3) <span class="k">AS</span> jaccard
 <span class="k">ORDER BY</span> jaccard <span class="k">DESC</span>;
 
+<span class="c">// SEE IT: shoe buyers and what else they bought</span>
+<span class="k">MATCH</span> path = (:<span class="l">Product</span> {sku:<span class="s">'P-100'</span>})&lt;-[:<span class="r">PURCHASED</span>]-()-[:<span class="r">RESOLVES_TO</span>]-&gt;(:<span class="l">Person</span>)
+             &lt;-[:<span class="r">RESOLVES_TO</span>]-()-[:<span class="r">PURCHASED</span>]-&gt;(y:<span class="l">Product</span>)
+<span class="k">WHERE</span> y.sku &lt;&gt; <span class="s">'P-100'</span>
+<span class="k">RETURN</span> path;
+
 <span class="c">// ---------- 12. (Needs Graph Data Science) WCC identity clusters with the same guard ----------</span>
+<span class="c">// Check GDS is installed first:</span>
+<span class="k">RETURN</span> gds.version();
+
 <span class="k">MATCH</span> (c:<span class="l">Customer</span>)-[:<span class="r">HAS_EMAIL|HAS_PHONE|USES_DEVICE</span>]-&gt;(i)
 <span class="k">WHERE</span> <span class="k">COUNT</span> { (i)&lt;--() } &lt;= 2
 <span class="k">WITH</span> gds.graph.project(<span class="s">'ids'</span>, c, i, {}, {undirectedRelationshipTypes:[<span class="s">'*'</span>]}) <span class="k">AS</span> g
@@ -234,9 +301,10 @@ FOREACH (_ <span class="k">IN</span> <span class="k">CASE</span> <span class="k"
 
 <span class="k">CALL</span> gds.wcc.stream(<span class="s">'ids'</span>) <span class="k">YIELD</span> nodeId, componentId
 <span class="k">WITH</span> gds.util.asNode(nodeId) <span class="k">AS</span> n, componentId <span class="k">WHERE</span> n:Customer
-<span class="k">RETURN</span> componentId, collect(n.id) <span class="k">AS</span> records <span class="k">ORDER BY</span> size(records) <span class="k">DESC</span>;
+<span class="k">RETURN</span> componentId, collect(n.id) <span class="k">AS</span> records, collect(n) <span class="k">AS</span> nodes
+<span class="k">ORDER BY</span> size(records) <span class="k">DESC</span>;
 
-<span class="k">CALL</span> gds.graph.drop(<span class="s">'ids'</span>);
+<span class="k">CALL</span> gds.graph.drop(<span class="s">'ids'</span>, false);
 <span class="c">// Note: records with no identifiers (WEB-8200) are not in this projection; Cypher block 6 handles them.</span></pre>
   </details>
 </div>

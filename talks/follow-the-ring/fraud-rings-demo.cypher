@@ -1,13 +1,18 @@
 // =====================================================================
 // Follow the Ring: graph data science for circular fraud networks
-// Runnable demo script for Neo4j 5 / Aura Free (Cypher 5).
+// Graph Database Africa · demo script for Neo4j 5.9+
 // Three fictional datasets, matching the three Graph Lab widgets:
 //   A. a transfer ring          (ring hunter)
 //   B. a scam-money tree        (follow the money)
 //   C. a food-delivery collusion ring (shared identifiers)
-// Run each block separately in Neo4j Browser or the Aura query tool.
-// Blocks marked GDS need the Graph Data Science library
-// (Neo4j Desktop or self-managed; not included in Aura Free).
+//
+// HOW TO RUN
+//   Works in Neo4j Sandbox (sandbox.neo4j.com, "Blank Sandbox"),
+//   Neo4j Aura Free, or Neo4j Desktop.
+//   Paste ONE block at a time (each statement ends with a semicolon).
+//   After every change or analysis there is a "SEE IT" query (or the query
+//   itself returns paths), so the result opens as a graph.
+//   Block C4 needs Graph Data Science (Sandbox and Desktop; not Aura Free).
 // =====================================================================
 
 // ---------------------------------------------------------------------
@@ -36,26 +41,27 @@ MERGE (a:Account {id: row[0]})
 MERGE (b:Account {id: row[1]})
 CREATE (a)-[:TRANSFERRED {amount: row[2], at: datetime(row[3])}]->(b);
 
-// Look at it:
+// SEE IT: eleven accounts, thirteen transfers
 MATCH p = (:Account)-[:TRANSFERRED]->(:Account) RETURN p;
 
 // A2. Every loop of 3 to 6 transfers (expect 2 loops, each returned
 //     once per starting account: 4 rows for the A ring, 3 for the B loop)
 MATCH p = (a:Account)-[:TRANSFERRED]->{3,6}(a)
-RETURN [n IN nodes(p) | n.id] AS loop;
+RETURN p, [n IN nodes(p) | n.id] AS loop;
 
 // A3. The ring signature: time-ordered, amounts decaying by at most 10%
 //     per hop, whole trip inside one hour.
 //     Expect exactly 1 row: start A-101, amounts [50000, 48500, 47100, 45600].
 //     The time-order rule also removes the duplicate rotations.
-MATCH (a:Account)
-      (()-[t:TRANSFERRED]->()){3,6}
-      (a)
+MATCH p = (a:Account)
+          (()-[t:TRANSFERRED]->()){3,6}
+          (a)
 WHERE all(i IN range(1, size(t)-1)
           WHERE t[i].at > t[i-1].at
             AND t[i].amount >= 0.9 * t[i-1].amount)
   AND t[-1].at < t[0].at + duration('PT1H')
-RETURN a.id AS start,
+RETURN p,
+       a.id AS start,
        [x IN t | x.amount] AS amounts,
        duration.between(t[0].at, t[-1].at).minutes AS minutes;
 
@@ -76,12 +82,16 @@ WHERE all(i IN range(1, size(t)-1)
   AND at > t[-1].at
   AND amount >= 0.9 * t[-1].amount
   AND at < t[0].at + duration('PT1H')
-RETURN [n IN nodes(p) | n.id] AS ring_this_payment_would_close;
+RETURN p, [n IN nodes(p) | n.id] AS ring_this_payment_would_close;
 
 //     Prefix the query above with PROFILE to see how few rows it touches.
 //     Then put the transfer back:
 MATCH (a:Account {id:'A-442'}), (b:Account {id:'A-101'})
 CREATE (a)-[:TRANSFERRED {amount: 45600, at: datetime('2026-03-14T09:41')}]->(b);
+
+// SEE IT: the ring is complete again
+MATCH p = (:Account {id:'A-101'})-[:TRANSFERRED]->{4}(:Account {id:'A-101'})
+RETURN p;
 
 // =====================================================================
 // B. FOLLOW THE MONEY
@@ -106,9 +116,14 @@ CREATE (v1)-[:PAID {amount:20000, at:datetime('2026-03-20T14:05')}]->(m1),
        (m3)-[:TRANSFERRED {amount:7900, at:datetime('2026-03-20T14:31')}]->(m6),
        (m5)-[:CASHED_OUT  {amount:4400, at:datetime('2026-03-20T15:02')}]->(atm);
 
+// SEE IT: two victims, six mule accounts, one ATM
+MATCH p = (x)-[:PAID|TRANSFERRED|CASHED_OUT]->()
+WHERE x:Victim OR x.balance IS NOT NULL
+RETURN p;
+
 // B2. Old rule: first receiving account only. Expect R3,000.
-MATCH (:Victim {id:'V-1'})-[:PAID]->(first:Account)
-RETURN first.id, first.balance AS recoverable;
+MATCH p = (:Victim {id:'V-1'})-[:PAID]->(first:Account)
+RETURN p, first.id, first.balance AS recoverable;
 
 // B3. Walk the tree forwards, time-ordered, after the scam payment.
 //     Expect M2, M3 at hop 1 and M4, M5, M6 at hop 2 (M1 is hop 0).
@@ -116,7 +131,8 @@ MATCH (:Victim {id:'V-1'})-[pay:PAID]->(m1:Account)
 MATCH p = (m1)(()-[t:TRANSFERRED]->()){1,4}(m:Account)
 WHERE t[0].at > pay.at
   AND all(i IN range(1, size(t)-1) WHERE t[i].at > t[i-1].at)
-RETURN m.id AS account, min(length(p)) AS hops_after_M1, m.balance AS balance
+RETURN m.id AS account, min(length(p)) AS hops_after_M1, m.balance AS balance,
+       collect(p) AS paths
 ORDER BY hops_after_M1, account;
 
 // B4. Freeze the whole tree. Expect R15,600 recoverable (78%),
@@ -134,6 +150,11 @@ WITH pay.amount AS paid,
      sum(coalesce(c.amount, 0)) AS cashed_out
 RETURN paid, recoverable, round(100.0 * recoverable / paid) AS pct, cashed_out;
 
+// SEE IT: the whole tree that gets frozen, plus the ATM where R4,400 escaped
+MATCH p = (:Victim {id:'V-1'})-[:PAID]->(:Account)
+          -[:TRANSFERRED*0..4]->(:Account)-[:CASHED_OUT*0..1]->()
+RETURN p;
+
 // B5. One mule, two victims: who else paid into this tree?
 //     Expect V-1 -> M1 and V-2 -> M3.
 MATCH (:Victim {id:'V-1'})-[pay:PAID]->(m1:Account)
@@ -142,8 +163,8 @@ WHERE t[0].at > pay.at
 WITH m1, collect(DISTINCT m) AS downstream
 WITH downstream + m1 AS tree
 UNWIND tree AS acc
-MATCH (v:Victim)-[:PAID]->(acc)
-RETURN v.id AS victim, acc.id AS paid_into
+MATCH p = (v:Victim)-[:PAID]->(acc)
+RETURN p, v.id AS victim, acc.id AS paid_into
 ORDER BY victim;
 
 // =====================================================================
@@ -176,11 +197,15 @@ MATCH (a {id: row[0]}), (d:Device {id: row[1]})
 WHERE a:Customer OR a:Courier
 CREATE (a)-[:USES_DEVICE]->(d);
 
+// SEE IT: customers, restaurants, couriers and devices
+MATCH p = ()-[:ORDERED|DELIVERS_FOR|USES_DEVICE]->()
+RETURN p;
+
 // C2. Shared devices. Expect phone-1 with 5 users, tablet-2 with 2.
-MATCH (a)-[:USES_DEVICE]->(d:Device)
-WITH d, collect(a.id) AS users
+MATCH p = (a)-[:USES_DEVICE]->(d:Device)
+WITH d, collect(a.id) AS users, collect(p) AS paths
 WHERE size(users) > 1
-RETURN d.id AS device, users;
+RETURN d.id AS device, users, paths;
 
 // C3. Score each shared device (plain Cypher, works on Aura Free).
 //     Expect phone-1: 5 accounts, 37 orders, 100% to Rest. A,
@@ -206,7 +231,12 @@ RETURN d.id AS device,
        } AS courier_on_same_device
 ORDER BY pct_to_top DESC;
 
+// SEE IT: everything around the flagged phone
+MATCH p = (:Device {id:'phone-1'})<-[:USES_DEVICE]-()-[:ORDERED|DELIVERS_FOR]->(:Restaurant)
+RETURN p;
+
 // C4. GDS: community detection (Louvain).
+//     Check GDS is installed first:  RETURN gds.version();
 //     Expect two communities:
 //       {user-1..4, courier-1, phone-1, Rest. A}
 //       {user-5, user-6, user-7, courier-2, tablet-2, Rest. B, Rest. C}
@@ -216,10 +246,20 @@ RETURN g.graphName, g.nodeCount, g.relationshipCount;
 
 CALL gds.louvain.stream('orders')
 YIELD nodeId, communityId
-WITH communityId, collect(coalesce(gds.util.asNode(nodeId).id,
-                                   gds.util.asNode(nodeId).name)) AS members
-RETURN communityId, size(members) AS size, members
+WITH communityId, collect(gds.util.asNode(nodeId)) AS members
+RETURN communityId,
+       size(members) AS size,
+       [x IN members | coalesce(x.id, x.name)] AS names
 ORDER BY size DESC;
+
+// SEE IT: each community drawn with only its internal relationships
+CALL gds.louvain.stream('orders')
+YIELD nodeId, communityId
+WITH communityId, collect(gds.util.asNode(nodeId)) AS members
+UNWIND members AS a
+MATCH p = (a)-[:ORDERED|DELIVERS_FOR|USES_DEVICE]->(b)
+WHERE b IN members
+RETURN communityId, collect(p) AS paths;
 
 CALL gds.graph.drop('orders', false);
 

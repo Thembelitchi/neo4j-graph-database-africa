@@ -70,14 +70,21 @@ pre{margin:0;padding:16px 18px 20px;overflow-x:auto;font:400 13.5px/1.6 var(--mo
   <p class="note">Click inside the demo once so it receives your arrow keys. The platform in the demos is fictional.</p>
 
   <details>
-    <summary>Run the demo yourself in Neo4j <span>Cypher · Aura Free</span></summary>
-    <div class="code-head"><p class="note">Paste into the Aura query editor one block at a time. Expected results are in the comments. <a href="sre-dependency-demo.cypher" download style="color:var(--blue)">Download .cypher</a></p><button class="copy" id="copy" type="button">Copy script</button></div>
+    <summary>Run the demo yourself in Neo4j <span>Cypher · Sandbox or Aura Free</span></summary>
+    <div class="code-head"><p class="note">Paste into <a href="https://sandbox.neo4j.com/" target="_blank" rel="noopener" style="color:var(--blue)">Neo4j Sandbox</a> (Blank Sandbox) or Aura Free one block at a time. Each change is followed by a SEE IT query that draws the graph; expected results are in the comments. <a href="sre-dependency-demo.cypher" download style="color:var(--blue)">Download .cypher</a></p><button class="copy" id="copy" type="button">Copy script</button></div>
 <pre id="script"><span class="c">// =====================================================================</span>
 <span class="c">// When One Thing Breaks: dependency graphs for SRE</span>
-<span class="c">// Runnable demo script for Neo4j 5 / Aura Free (Cypher 5).</span>
+<span class="c">// Graph Database Africa · demo script for Neo4j 5.9+</span>
 <span class="c">// A fictional online shop: 15 components, 21 relationships.</span>
 <span class="c">// Convention: (a)-[:DEPENDS_ON]-&gt;(b) means "a needs b".</span>
-<span class="c">// Run each block separately in Neo4j Browser or the Aura query tool.</span>
+<span class="c">//</span>
+<span class="c">// HOW TO RUN</span>
+<span class="c">//   Works in Neo4j Sandbox (sandbox.neo4j.com, "Blank Sandbox"),</span>
+<span class="c">//   Neo4j Aura Free, or Neo4j Desktop.</span>
+<span class="c">//   Paste ONE block at a time (each statement ends with a semicolon).</span>
+<span class="c">//   After every change or analysis there is a "SEE IT" query that returns</span>
+<span class="c">//   paths, so the result opens as a graph of exactly what changed.</span>
+<span class="c">//   Block 10 needs Graph Data Science (Sandbox and Desktop; not Aura Free).</span>
 <span class="c">// =====================================================================</span>
 
 <span class="c">// ---------------------------------------------------------------------</span>
@@ -112,6 +119,9 @@ pre{margin:0;padding:16px 18px 20px;overflow-x:auto;font:400 13.5px/1.6 var(--mo
 <span class="k">MERGE</span> (c:<span class="l">Component</span> {name: row.name})
 <span class="k">SET</span> c.type = row.type, c.team = row.team, c.pool = row.pool;
 
+<span class="c">// SEE IT: fifteen components, nothing connected yet</span>
+<span class="k">MATCH</span> (c:<span class="l">Component</span>) <span class="k">RETURN</span> c;
+
 <span class="c">// ---------------------------------------------------------------------</span>
 <span class="c">// 2. Relationships: DEPENDS_ON (needs) and HOSTED_ON (runs on)</span>
 <span class="c">// ---------------------------------------------------------------------</span>
@@ -137,7 +147,7 @@ pre{margin:0;padding:16px 18px 20px;overflow-x:auto;font:400 13.5px/1.6 var(--mo
 <span class="c">// Check: expect 17 DEPENDS_ON + 4 HOSTED_ON = 21</span>
 <span class="k">MATCH</span> ()-[r]-&gt;() <span class="k">RETURN</span> type(r) <span class="k">AS</span> type, count(*) <span class="k">AS</span> n;
 
-<span class="c">// Look at it:</span>
+<span class="c">// SEE IT: the whole platform</span>
 <span class="k">MATCH</span> p = ()-[:<span class="r">DEPENDS_ON|HOSTED_ON</span>]-&gt;() <span class="k">RETURN</span> p;
 
 <span class="c">// ---------------------------------------------------------------------</span>
@@ -149,6 +159,10 @@ pre{margin:0;padding:16px 18px 20px;overflow-x:auto;font:400 13.5px/1.6 var(--mo
 <span class="k">RETURN</span> hit.name <span class="k">AS</span> affected, hit.team <span class="k">AS</span> team, min(length(p)) <span class="k">AS</span> hops
 <span class="k">ORDER BY</span> hops, affected;
 
+<span class="c">// SEE IT: everything that goes down with edge-router-04</span>
+<span class="k">MATCH</span> p = (:<span class="l">Component</span>)-[:<span class="r">DEPENDS_ON|HOSTED_ON</span>]-&gt;{1,8}(:<span class="l">Component</span> {name:<span class="s">'edge-router-04'</span>})
+<span class="k">RETURN</span> p;
+
 <span class="c">// ---------------------------------------------------------------------</span>
 <span class="c">// 4. ROOT CAUSE: walk WITH the arrows from the symptom</span>
 <span class="c">//    Expect 9 suspects: auth, orders-db, payments at 1 hop ...</span>
@@ -156,6 +170,10 @@ pre{margin:0;padding:16px 18px 20px;overflow-x:auto;font:400 13.5px/1.6 var(--mo
 <span class="k">MATCH</span> p = (:<span class="l">Component</span> {name:<span class="s">'checkout'</span>})-[:<span class="r">DEPENDS_ON|HOSTED_ON</span>]-&gt;{1,8}(s:<span class="l">Component</span>)
 <span class="k">RETURN</span> s.name <span class="k">AS</span> suspect, s.type <span class="k">AS</span> type, min(length(p)) <span class="k">AS</span> hops
 <span class="k">ORDER BY</span> hops, suspect;
+
+<span class="c">// SEE IT: every suspect checkout depends on</span>
+<span class="k">MATCH</span> p = (:<span class="l">Component</span> {name:<span class="s">'checkout'</span>})-[:<span class="r">DEPENDS_ON|HOSTED_ON</span>]-&gt;{1,8}(:<span class="l">Component</span>)
+<span class="k">RETURN</span> p;
 
 <span class="c">// ---------------------------------------------------------------------</span>
 <span class="c">// 5. CRITICALITY AUDIT: direct vs transitive dependents</span>
@@ -170,6 +188,11 @@ pre{margin:0;padding:16px 18px 20px;overflow-x:auto;font:400 13.5px/1.6 var(--mo
        }) <span class="k">AS</span> transitive
 <span class="k">ORDER BY</span> transitive <span class="k">DESC</span>, direct <span class="k">DESC</span>;
 
+<span class="c">// SEE IT: dns-internal has 2 arrows pointing at it, but 13 components behind it.</span>
+<span class="c">// Change 'dns-internal' to 'auth' and run again to compare (5 behind it).</span>
+<span class="k">MATCH</span> p = (:<span class="l">Component</span>)-[:<span class="r">DEPENDS_ON|HOSTED_ON</span>]-&gt;{1,8}(:<span class="l">Component</span> {name:<span class="s">'dns-internal'</span>})
+<span class="k">RETURN</span> p;
+
 <span class="c">// ---------------------------------------------------------------------</span>
 <span class="c">// 6. STARTUP / DEPLOY WAVES (pure Cypher, no GDS needed)</span>
 <span class="c">//    Wave = 1 + longest path to something with no dependencies.</span>
@@ -182,6 +205,11 @@ pre{margin:0;padding:16px 18px 20px;overflow-x:auto;font:400 13.5px/1.6 var(--mo
 <span class="k">RETURN</span> wave, collect(c.name) <span class="k">AS</span> start_together
 <span class="k">ORDER BY</span> wave;
 
+<span class="c">// SEE IT: the longest chain sets the number of waves (mobile-bff, 7 waves)</span>
+<span class="k">MATCH</span> p = (:<span class="l">Component</span> {name:<span class="s">'mobile-bff'</span>})-[:<span class="r">DEPENDS_ON|HOSTED_ON</span>]-&gt;+(leaf)
+<span class="k">WHERE</span> <span class="k">NOT</span> (leaf)-[:<span class="r">DEPENDS_ON|HOSTED_ON</span>]-&gt;()
+<span class="k">RETURN</span> p <span class="k">ORDER BY</span> length(p) <span class="k">DESC</span> <span class="k">LIMIT</span> 1;
+
 <span class="c">// ---------------------------------------------------------------------</span>
 <span class="c">// 7. ADD REDUNDANCY: a second router in the same pool</span>
 <span class="c">// ---------------------------------------------------------------------</span>
@@ -190,6 +218,10 @@ pre{margin:0;padding:16px 18px 20px;overflow-x:auto;font:400 13.5px/1.6 var(--mo
 <span class="k">WITH</span> r
 <span class="k">MATCH</span> (s:<span class="l">Component</span> {type:<span class="s">'server'</span>})
 <span class="k">MERGE</span> (s)-[:<span class="r">DEPENDS_ON</span>]-&gt;(r);
+
+<span class="c">// SEE IT: each server now has two routers in the 'edge' pool</span>
+<span class="k">MATCH</span> p = (:<span class="l">Component</span> {type:<span class="s">'server'</span>})-[:<span class="r">DEPENDS_ON</span>]-&gt;(:<span class="l">Component</span> {pool:<span class="s">'edge'</span>})
+<span class="k">RETURN</span> p;
 
 <span class="c">// The plain walk in step 3 still says 13 affected, because it treats</span>
 <span class="c">// every dependency as "needs all of these". Ask the better question:</span>
@@ -208,20 +240,27 @@ pre{margin:0;padding:16px 18px 20px;overflow-x:auto;font:400 13.5px/1.6 var(--mo
 <span class="k">MATCH</span> (p:<span class="l">Component</span> {name:<span class="s">'payments'</span>}), (c:<span class="l">Component</span> {name:<span class="s">'checkout'</span>})
 <span class="k">MERGE</span> (p)-[:<span class="r">DEPENDS_ON</span> {mode:<span class="s">'sync-callback'</span>}]-&gt;(c);
 
+<span class="c">// SEE IT: the new arrow, and the one it turns into a loop</span>
+<span class="k">MATCH</span> p = (:<span class="l">Component</span> {name:<span class="s">'checkout'</span>})-[:<span class="r">DEPENDS_ON</span>]-&gt;(:<span class="l">Component</span> {name:<span class="s">'payments'</span>})
+          -[:<span class="r">DEPENDS_ON</span>]-&gt;(:<span class="l">Component</span> {name:<span class="s">'checkout'</span>})
+<span class="k">RETURN</span> p;
+
 <span class="c">// Cycle check: run this in CI on every change to the dependency graph.</span>
 <span class="k">MATCH</span> p = (a:<span class="l">Component</span>)-[:<span class="r">DEPENDS_ON|HOSTED_ON</span>]-&gt;{1,8}(a)
-<span class="k">RETURN</span> [n <span class="k">IN</span> nodes(p) | n.name] <span class="k">AS</span> cycle
+<span class="k">RETURN</span> p, [n <span class="k">IN</span> nodes(p) | n.name] <span class="k">AS</span> cycle
 <span class="k">LIMIT</span> 5;
 <span class="c">// Expect: checkout -&gt; payments -&gt; checkout (and the rotation starting at payments).</span>
 
 <span class="c">// Who can never start while the cycle exists? Anything on a cycle,</span>
 <span class="c">// plus anything that (transitively) needs something on a cycle.</span>
-<span class="k">MATCH</span> (a:<span class="l">Component</span>) <span class="k">WHERE</span> (a)-[:<span class="r">DEPENDS_ON|HOSTED_ON</span>]-&gt;{1,8}(a)
+<span class="k">MATCH</span> (a:<span class="l">Component</span>) <span class="k">WHERE</span> <span class="k">EXISTS</span> { (a)-[:<span class="r">DEPENDS_ON|HOSTED_ON</span>]-&gt;{1,8}(a) }
 <span class="k">WITH</span> collect(a) <span class="k">AS</span> onCycle
 <span class="k">MATCH</span> (x:<span class="l">Component</span>)
-<span class="k">WHERE</span> x <span class="k">IN</span> onCycle
-   <span class="k">OR</span> any(c <span class="k">IN</span> onCycle <span class="k">WHERE</span> (x)-[:<span class="r">DEPENDS_ON|HOSTED_ON</span>]-&gt;{1,8}(c))
-<span class="k">RETURN</span> collect(x.name) <span class="k">AS</span> stuck;
+<span class="k">OPTIONAL</span> <span class="k">MATCH</span> (x)-[:<span class="r">DEPENDS_ON|HOSTED_ON</span>]-&gt;{1,8}(c)
+<span class="k">WHERE</span> c <span class="k">IN</span> onCycle
+<span class="k">WITH</span> x, onCycle, count(c) <span class="k">AS</span> reachesCycle
+<span class="k">WHERE</span> x <span class="k">IN</span> onCycle <span class="k">OR</span> reachesCycle &gt; 0
+<span class="k">RETURN</span> collect(x.name) <span class="k">AS</span> stuck, collect(x) <span class="k">AS</span> nodes;
 <span class="c">// Expect 3: web-frontend, checkout, payments.</span>
 
 <span class="c">// ---------------------------------------------------------------------</span>
@@ -232,6 +271,11 @@ pre{margin:0;padding:16px 18px 20px;overflow-x:auto;font:400 13.5px/1.6 var(--mo
 <span class="k">DELETE</span> d;
 <span class="k">MATCH</span> (c:<span class="l">Component</span> {name:<span class="s">'checkout'</span>}), (b:<span class="l">Component</span> {name:<span class="s">'event-bus'</span>})
 <span class="k">MERGE</span> (c)-[:<span class="r">SUBSCRIBES_TO</span> {topic:<span class="s">'payment.completed'</span>}]-&gt;(b);
+
+<span class="c">// SEE IT: checkout now listens to the event bus instead of being called back</span>
+<span class="k">MATCH</span> p = (:<span class="l">Component</span> {name:<span class="s">'payments'</span>})-[:<span class="r">DEPENDS_ON</span>]-&gt;(:<span class="l">Component</span> {name:<span class="s">'event-bus'</span>})
+          &lt;-[:<span class="r">SUBSCRIBES_TO</span>]-(:<span class="l">Component</span> {name:<span class="s">'checkout'</span>})
+<span class="k">RETURN</span> p;
 <span class="c">// SUBSCRIBES_TO is deliberately a different type: it is a soft dependency</span>
 <span class="c">// and is not included in the blast-radius and wave queries above.</span>
 <span class="c">// Re-run the cycle check: no rows.</span>
@@ -240,6 +284,9 @@ pre{margin:0;padding:16px 18px 20px;overflow-x:auto;font:400 13.5px/1.6 var(--mo
 <span class="c">// 10. OPTIONAL: Graph Data Science (AuraDS / self-managed with GDS)</span>
 <span class="c">//     GDS is not included in Aura Free.</span>
 <span class="c">// ---------------------------------------------------------------------</span>
+<span class="c">// Check GDS is installed first:</span>
+<span class="k">RETURN</span> gds.version();
+
 <span class="c">// Project with the arrows REVERSED, so "b before a" when a needs b:</span>
 <span class="k">MATCH</span> (a:<span class="l">Component</span>)-[:<span class="r">DEPENDS_ON|HOSTED_ON</span>]-&gt;(b:<span class="l">Component</span>)
 <span class="k">WITH</span> gds.graph.project(<span class="s">'startOrder'</span>, b, a) <span class="k">AS</span> g
@@ -253,6 +300,8 @@ pre{margin:0;padding:16px 18px 20px;overflow-x:auto;font:400 13.5px/1.6 var(--mo
 
 <span class="c">// Articulation points and bridges (undirected view of the graph).</span>
 <span class="c">// In this platform both return nothing: every server has two network paths.</span>
+<span class="c">// These procedures need GDS 2.6 or later; on older versions try the</span>
+<span class="c">// gds.beta. or gds.alpha. prefix.</span>
 <span class="k">MATCH</span> (a:<span class="l">Component</span>)-[:<span class="r">DEPENDS_ON|HOSTED_ON</span>]-&gt;(b:<span class="l">Component</span>)
 <span class="k">WITH</span> gds.graph.project(<span class="s">'undirected'</span>, a, b, {}, {undirectedRelationshipTypes:[<span class="s">'*'</span>]}) <span class="k">AS</span> g
 <span class="k">RETURN</span> g.graphName;
