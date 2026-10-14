@@ -144,10 +144,10 @@ MERGE (c)-[:PURCHASED]->(b);
 
 // ---------- 11. Item-to-item: "bought X, also bought Y" (Jaccard over people) ----------
 MATCH (x:Product {sku:'P-100'})<-[:PURCHASED]-()-[:RESOLVES_TO]->(b:Person)
-WITH x, collect(DISTINCT b) AS bx
+WITH x, collect(DISTINCT b) AS buyersX
 MATCH (y:Product)<-[:PURCHASED]-()-[:RESOLVES_TO]->(b2:Person) WHERE y <> x
-WITH bx, y, collect(DISTINCT b2) AS by
-WITH y, size([b IN by WHERE b IN bx]) AS shared, size(bx) + size(by) AS total
+WITH buyersX, y, collect(DISTINCT b2) AS buyersY
+WITH y, size([b IN buyersY WHERE b IN buyersX]) AS shared, size(buyersX) + size(buyersY) AS total
 WHERE shared > 0
 RETURN y.name, round(toFloat(shared) / (total - shared), 3) AS jaccard
 ORDER BY jaccard DESC;

@@ -199,7 +199,8 @@ pre{margin:0;padding:16px 18px 20px;overflow-x:auto;font:400 13.5px/1.6 var(--mo
 <span class="k">OPTIONAL</span> <span class="k">MATCH</span> (m1)(()-[t:<span class="r">TRANSFERRED</span>]-&gt;()){1,4}(m:<span class="l">Account</span>)
 <span class="k">WHERE</span> t[0].at &gt; pay.at
   <span class="k">AND</span> all(i <span class="k">IN</span> range(1, size(t)-1) <span class="k">WHERE</span> t[i].at &gt; t[i-1].at)
-<span class="k">WITH</span> pay, collect(<span class="k">DISTINCT</span> m) + m1 <span class="k">AS</span> tree
+<span class="k">WITH</span> pay, m1, collect(<span class="k">DISTINCT</span> m) <span class="k">AS</span> downstream
+<span class="k">WITH</span> pay, downstream + m1 <span class="k">AS</span> tree
 <span class="k">UNWIND</span> tree <span class="k">AS</span> acc
 <span class="k">OPTIONAL</span> <span class="k">MATCH</span> (acc)-[c:<span class="r">CASHED_OUT</span>]-&gt;(:<span class="l">CashPoint</span>)
 <span class="k">WITH</span> pay.amount <span class="k">AS</span> paid,
@@ -212,7 +213,8 @@ pre{margin:0;padding:16px 18px 20px;overflow-x:auto;font:400 13.5px/1.6 var(--mo
 <span class="k">MATCH</span> (:<span class="l">Victim</span> {id:<span class="s">'V-1'</span>})-[pay:<span class="r">PAID</span>]-&gt;(m1:<span class="l">Account</span>)
 <span class="k">OPTIONAL</span> <span class="k">MATCH</span> (m1)(()-[t:<span class="r">TRANSFERRED</span>]-&gt;()){1,4}(m:<span class="l">Account</span>)
 <span class="k">WHERE</span> t[0].at &gt; pay.at
-<span class="k">WITH</span> collect(<span class="k">DISTINCT</span> m) + m1 <span class="k">AS</span> tree
+<span class="k">WITH</span> m1, collect(<span class="k">DISTINCT</span> m) <span class="k">AS</span> downstream
+<span class="k">WITH</span> downstream + m1 <span class="k">AS</span> tree
 <span class="k">UNWIND</span> tree <span class="k">AS</span> acc
 <span class="k">MATCH</span> (v:<span class="l">Victim</span>)-[:<span class="r">PAID</span>]-&gt;(acc)
 <span class="k">RETURN</span> v.id <span class="k">AS</span> victim, acc.id <span class="k">AS</span> paid_into

@@ -218,10 +218,10 @@ FOREACH (_ <span class="k">IN</span> <span class="k">CASE</span> <span class="k"
 
 <span class="c">// ---------- 11. Item-to-item: "bought X, also bought Y" (Jaccard over people) ----------</span>
 <span class="k">MATCH</span> (x:<span class="l">Product</span> {sku:<span class="s">'P-100'</span>})&lt;-[:<span class="r">PURCHASED</span>]-()-[:<span class="r">RESOLVES_TO</span>]-&gt;(b:<span class="l">Person</span>)
-<span class="k">WITH</span> x, collect(<span class="k">DISTINCT</span> b) <span class="k">AS</span> bx
+<span class="k">WITH</span> x, collect(<span class="k">DISTINCT</span> b) <span class="k">AS</span> buyersX
 <span class="k">MATCH</span> (y:<span class="l">Product</span>)&lt;-[:<span class="r">PURCHASED</span>]-()-[:<span class="r">RESOLVES_TO</span>]-&gt;(b2:<span class="l">Person</span>) <span class="k">WHERE</span> y &lt;&gt; x
-<span class="k">WITH</span> bx, y, collect(<span class="k">DISTINCT</span> b2) <span class="k">AS</span> by
-<span class="k">WITH</span> y, size([b <span class="k">IN</span> by <span class="k">WHERE</span> b <span class="k">IN</span> bx]) <span class="k">AS</span> shared, size(bx) + size(by) <span class="k">AS</span> total
+<span class="k">WITH</span> buyersX, y, collect(<span class="k">DISTINCT</span> b2) <span class="k">AS</span> buyersY
+<span class="k">WITH</span> y, size([b <span class="k">IN</span> buyersY <span class="k">WHERE</span> b <span class="k">IN</span> buyersX]) <span class="k">AS</span> shared, size(buyersX) + size(buyersY) <span class="k">AS</span> total
 <span class="k">WHERE</span> shared &gt; 0
 <span class="k">RETURN</span> y.name, round(toFloat(shared) / (total - shared), 3) <span class="k">AS</span> jaccard
 <span class="k">ORDER BY</span> jaccard <span class="k">DESC</span>;

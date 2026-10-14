@@ -125,7 +125,8 @@ MATCH (:Victim {id:'V-1'})-[pay:PAID]->(m1:Account)
 OPTIONAL MATCH (m1)(()-[t:TRANSFERRED]->()){1,4}(m:Account)
 WHERE t[0].at > pay.at
   AND all(i IN range(1, size(t)-1) WHERE t[i].at > t[i-1].at)
-WITH pay, collect(DISTINCT m) + m1 AS tree
+WITH pay, m1, collect(DISTINCT m) AS downstream
+WITH pay, downstream + m1 AS tree
 UNWIND tree AS acc
 OPTIONAL MATCH (acc)-[c:CASHED_OUT]->(:CashPoint)
 WITH pay.amount AS paid,
@@ -138,7 +139,8 @@ RETURN paid, recoverable, round(100.0 * recoverable / paid) AS pct, cashed_out;
 MATCH (:Victim {id:'V-1'})-[pay:PAID]->(m1:Account)
 OPTIONAL MATCH (m1)(()-[t:TRANSFERRED]->()){1,4}(m:Account)
 WHERE t[0].at > pay.at
-WITH collect(DISTINCT m) + m1 AS tree
+WITH m1, collect(DISTINCT m) AS downstream
+WITH downstream + m1 AS tree
 UNWIND tree AS acc
 MATCH (v:Victim)-[:PAID]->(acc)
 RETURN v.id AS victim, acc.id AS paid_into
