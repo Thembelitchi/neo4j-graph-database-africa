@@ -1,0 +1,35 @@
+name: Check demo Cypher
+on:
+  push:
+    branches: [cypher-check]
+  workflow_dispatch:
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        neo4j: ['5.26-community', 'community']
+    services:
+      neo4j:
+        image: neo4j:${{ matrix.neo4j }}
+        env:
+          NEO4J_AUTH: neo4j/testpassword
+          NEO4J_PLUGINS: '["graph-data-science"]'
+          NEO4J_dbms_security_procedures_unrestricted: 'gds.*'
+        ports: ['7687:7687']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install neo4j
+      - name: Wait for Neo4j
+        run: |
+          for i in $(seq 1 60); do python -c "from neo4j import GraphDatabase as G; d=G.driver('bolt://localhost:7687',auth=('neo4j','testpassword')); d.verify_connectivity(); print(d.execute_query('CALL dbms.components() YIELD versions RETURN versions').records)" && break; sleep 5; done
+      - name: Run scripts
+        run: |
+          rc=0
+          for f in talks/power-of-the-network/power-of-the-network-demo.cypher talks/one-customer-many-records/customer-360-demo.cypher talks/when-one-thing-breaks/sre-dependency-demo.cypher talks/follow-the-ring/fraud-rings-demo.cypher; do
+            python tools/run_cypher.py bolt://localhost:7687 "$f" || rc=1
+          done
+          exit $rc
